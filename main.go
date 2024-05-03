@@ -4,6 +4,10 @@ import (
 	"fmt"
 	"math/rand"
 	"os"
+	"strings"
+	"time"
+
+	"github.com/goombaio/namegenerator"
 )
 
 func main() {
@@ -24,7 +28,10 @@ func createNewAccount() {
 }
 
 func getRandomUsername() string {
-	return ""
+	nameGenerator := namegenerator.NewNameGenerator(time.Now().UTC().UnixNano())
+
+	name := strings.Replace(nameGenerator.Generate(), "-", "", -1)
+	return name
 }
 
 func generateRandomID(length int) string {
