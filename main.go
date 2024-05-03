@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"io"
 	"log"
 	"math/rand"
 	"net/http"
@@ -104,19 +103,33 @@ func getTwitchCookies() map[string]string {
 		}
 	}
 
-	resp, err := httpClient.Get("https://twitch.tv")
+	req, err := http.NewRequest("GET", "https://twitch.tv", nil)
 	if err != nil {
-		log.Fatal("Error making GET request:", err)
+		log.Fatal("Error creating the request:", err)
 	}
 
+	req.Header.Set("User-Agent", "current_useragent")
+	req.Header.Set("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8")
+	req.Header.Set("Accept-Language", "en-US,en;q=0.5")
+	req.Header.Set("Accept-Encoding", "gzip, deflate, br")
+	req.Header.Set("DNT", "1")
+	req.Header.Set("Connection", "keep-alive")
+	req.Header.Set("Upgrade-Insecure-Requests", "1")
+	req.Header.Set("Sec-Fetch-Dest", "document")
+	req.Header.Set("Sec-Fetch-Mode", "navigate")
+	req.Header.Set("Sec-Fetch-Site", "none")
+	req.Header.Set("Sec-Fetch-User", "?1")
+
+	resp, err := httpClient.Do(req)
+	if err != nil {
+		log.Fatal("Error making request:", err)
+	}
 	defer resp.Body.Close()
 
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		log.Fatal("Error reading response body:", err)
+	for _, cookieData := range resp.Header["Set-Cookie"] {
+		cookie := strings.Split(cookieData, ";")[0]
+		cookiesMap[strings.Split(cookie, "=")[0]] = strings.Split(cookie, "=")[1]
 	}
-
-	fmt.Println(string(body))
 
 	return cookiesMap
 }
