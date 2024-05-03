@@ -1,6 +1,6 @@
 package main
 
-var globalConfig = Config{
-	CapSolverKey: "your_captcha_key",
+var config = Config{
+	CapSolverKey: "test",
 	ProxyType:    "your_proxy",
 }
