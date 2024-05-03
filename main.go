@@ -67,9 +67,17 @@ func generateRandomRegisterData(uname string, email string) RandomRegisterData {
 	return RandomRegisterData{
 		Username:       uname,
 		Password:       getRandomPassword(),
-		Birthday:       Birthday{},
+		Birthday:       generateRandomBirthday(),
 		Email:          email,
 		ClientID:       "",
 		IntegrityToken: "",
+	}
+}
+
+func generateRandomBirthday() Birthday {
+	return Birthday{
+		Day:   rand.Intn(30) + 1,
+		Month: rand.Intn(12) + 1,
+		Year:  rand.Intn(30) + 1970,
 	}
 }
