@@ -69,7 +69,7 @@ func generateRandomRegisterData(uname string, email string) RandomRegisterData {
 		Password:       getRandomPassword(),
 		Birthday:       generateRandomBirthday(),
 		Email:          email,
-		ClientID:       "",
+		ClientID:       config.TwitchClientID,
 		IntegrityToken: "",
 	}
 }
