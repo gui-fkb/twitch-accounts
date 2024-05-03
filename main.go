@@ -26,8 +26,10 @@ func main() {
 func createNewAccount() {
 	randomUsername := getRandomUsername() + "_" + generateRandomID(3)
 	randomPassword := getRandomPassword()
+	randomEmail := getEmail(randomUsername)
 
 	fmt.Println(randomUsername, randomPassword)
+	fmt.Println(randomEmail)
 }
 
 func getRandomUsername() string {
@@ -55,4 +57,8 @@ func getRandomPassword() string {
 	}
 
 	return res
+}
+
+func getEmail(username string) string {
+	return fmt.Sprintf("%s@%s", username, config.EmailDomain)
 }
