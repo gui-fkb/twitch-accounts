@@ -2,12 +2,14 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"math/rand"
 	"os"
 	"strings"
 	"time"
 
 	"github.com/goombaio/namegenerator"
+	"github.com/sethvargo/go-password/password"
 )
 
 func main() {
@@ -23,8 +25,9 @@ func main() {
 
 func createNewAccount() {
 	randomUsername := getRandomUsername() + "_" + generateRandomID(3)
+	randomPassword := getRandomPassword()
 
-	fmt.Println(randomUsername)
+	fmt.Println(randomUsername, randomPassword)
 }
 
 func getRandomUsername() string {
@@ -43,4 +46,13 @@ func generateRandomID(length int) string {
 		bytes[i] = charset[index]
 	}
 	return string(bytes)
+}
+
+func getRandomPassword() string {
+	res, err := password.Generate(32, 1, 1, false, false)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return res
 }
