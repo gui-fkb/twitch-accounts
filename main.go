@@ -62,3 +62,14 @@ func getRandomPassword() string {
 func getEmail(username string) string {
 	return fmt.Sprintf("%s@%s", username, config.EmailDomain)
 }
+
+func generateRandomRegisterData(uname string, email string) RandomRegisterData {
+	return RandomRegisterData{
+		Username:       uname,
+		Password:       getRandomPassword(),
+		Birthday:       Birthday{},
+		Email:          email,
+		ClientID:       "",
+		IntegrityToken: "",
+	}
+}
