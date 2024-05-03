@@ -25,11 +25,11 @@ func main() {
 
 func createNewAccount() {
 	randomUsername := getRandomUsername() + "_" + generateRandomID(3)
-	randomPassword := getRandomPassword()
 	randomEmail := getEmail(randomUsername)
 
-	fmt.Println(randomUsername, randomPassword)
-	fmt.Println(randomEmail)
+	registerPostData := generateRandomRegisterData(randomUsername, randomEmail)
+
+	fmt.Printf("%+v", registerPostData)
 }
 
 func getRandomUsername() string {
@@ -50,15 +50,6 @@ func generateRandomID(length int) string {
 	return string(bytes)
 }
 
-func getRandomPassword() string {
-	res, err := password.Generate(32, 1, 1, false, false)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	return res
-}
-
 func getEmail(username string) string {
 	return fmt.Sprintf("%s@%s", username, config.EmailDomain)
 }
@@ -72,6 +63,15 @@ func generateRandomRegisterData(uname string, email string) RandomRegisterData {
 		ClientID:       config.TwitchClientID,
 		IntegrityToken: "",
 	}
+}
+
+func getRandomPassword() string {
+	res, err := password.Generate(32, 1, 1, false, false)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return res
 }
 
 func generateRandomBirthday() Birthday {
