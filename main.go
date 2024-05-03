@@ -44,7 +44,7 @@ func generateRandomID(length int) string {
 
 	bytes := make([]byte, length)
 	for i := range bytes {
-		index := rand.Intn(length)
+		index := rand.Intn(len(charset))
 		bytes[i] = charset[index]
 	}
 	return string(bytes)
