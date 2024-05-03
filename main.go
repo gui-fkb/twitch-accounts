@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"math/rand"
-	"os"
 	"strings"
 	"time"
 
@@ -16,8 +15,7 @@ func main() {
 	fmt.Println("twitch-accounts by xBadApple -  https://github.com/xBadApple")
 
 	if config.CapSolverKey == "your_captcha_key" {
-		fmt.Println("It looks like your captcha solver API token isn't configured yet. Change it in the config.go file and run again.")
-		os.Exit(1)
+		log.Fatal("It looks like your captcha solver API token isn't configured yet. Change it in the config.go file and run again.")
 	}
 
 	createNewAccount()
