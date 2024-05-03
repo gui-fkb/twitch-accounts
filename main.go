@@ -2,8 +2,11 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"log"
 	"math/rand"
+	"net/http"
+	"net/url"
 	"strings"
 	"time"
 
@@ -26,6 +29,8 @@ func createNewAccount() {
 	randomEmail := getEmail(randomUsername)
 
 	registerPostData := generateRandomRegisterData(randomUsername, randomEmail)
+
+	getTwitchCookies()
 
 	fmt.Printf("%+v", registerPostData)
 }
@@ -78,4 +83,40 @@ func generateRandomBirthday() Birthday {
 		Month: rand.Intn(12) + 1,
 		Year:  rand.Intn(30) + 1970,
 	}
+}
+
+func getTwitchCookies() map[string]string {
+	cookiesMap := make(map[string]string)
+	httpClient := &http.Client{}
+	var proxyURL *url.URL
+
+	if config.Proxy == "your_proxy" {
+		fmt.Println("!! There is no proxy configuration found. The requests are going to be handled without any proxy !!")
+	} else {
+		var err error
+		proxyURL, err = url.Parse(config.Proxy)
+		if err != nil {
+			log.Fatal("Error parsing proxy URL:", err)
+		}
+
+		httpClient.Transport = &http.Transport{
+			Proxy: http.ProxyURL(proxyURL),
+		}
+	}
+
+	resp, err := httpClient.Get("https://twitch.tv")
+	if err != nil {
+		log.Fatal("Error making GET request:", err)
+	}
+
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		log.Fatal("Error reading response body:", err)
+	}
+
+	fmt.Println(string(body))
+
+	return cookiesMap
 }
