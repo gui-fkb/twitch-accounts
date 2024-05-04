@@ -23,19 +23,19 @@ func main() {
 	createNewAccount()
 }
 
-func printRegisterData(data RandomRegisterData) {
-	fmt.Printf("%+v", data)
-}
-
 func createNewAccount() {
 	randomUsername := getRandomUsername() + "_" + generateRandomID(3)
 	randomEmail := getEmail(randomUsername)
 
 	registerPostData := generateRandomRegisterData(randomUsername, randomEmail)
 
-	getTwitchCookies()
+	fmt.Println("Getting twitch cookies.")
+	cookies := getTwitchCookies()
 
-	printRegisterData(registerPostData)
+	fmt.Println("Getting kasada code")
+
+	fmt.Printf("%+v", registerPostData)
+	fmt.Printf("%+v", cookies)
 }
 
 func getRandomUsername() string {
@@ -137,3 +137,5 @@ func getTwitchCookies() map[string]string {
 
 	return cookiesMap
 }
+
+func 
