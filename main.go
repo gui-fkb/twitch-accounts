@@ -15,6 +15,8 @@ import (
 )
 
 func main() {
+	kasdaResolver()
+
 	fmt.Println("twitch-accounts by xBadApple -  https://github.com/xBadApple")
 
 	if config.CapSolverKey == "your_captcha_key" {
@@ -141,11 +143,11 @@ func getTwitchCookies() map[string]string {
 }
 
 func kasdaResolver() {
-	capSolver := capsolver_go.CapSolver{ApiKey: "..."}
+	capSolver := capsolver_go.CapSolver{ApiKey: config.CapSolverKey}
 	solution, err := capSolver.Solve(map[string]any{
-		"type":             "FunCaptchaTaskProxyLess",
-		"websiteURL":       "https://www.yourwebsite.com",
-		"websitePublicKey": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+		"type":       "AntiKasadaTask",
+		"websiteURL": "https://gql.twitch.tv/",
+		"websiteKey": "B278567A-C94E-457E-B419-F1D6A5D1AA6D",
 	})
 	if err != nil {
 		log.Fatal(err)
