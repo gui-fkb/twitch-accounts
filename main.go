@@ -33,6 +33,7 @@ func createNewAccount() {
 	cookies := getTwitchCookies()
 
 	fmt.Println("Getting kasada code")
+	kasdaResolver()
 
 	fmt.Printf("%+v", registerPostData)
 	fmt.Printf("%+v", cookies)
@@ -138,6 +139,6 @@ func getTwitchCookies() map[string]string {
 	return cookiesMap
 }
 
-func KasdaResolver() {
+func kasdaResolver() {
 
 }
