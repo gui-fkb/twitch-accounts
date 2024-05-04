@@ -94,7 +94,7 @@ func getTwitchCookies() map[string]string {
 	var proxyURL *url.URL
 
 	if config.Proxy == "your_proxy" {
-		fmt.Println("!!! There is no proxy configuration found. The requests are going to be handled without any proxy !!!")
+		fmt.Println("!! There is no proxy configuration found. The requests are going to be handled without any proxy !!")
 	} else {
 		var err error
 		proxyURL, err = url.Parse(config.Proxy)
