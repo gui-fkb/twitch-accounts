@@ -23,6 +23,10 @@ func main() {
 	createNewAccount()
 }
 
+func printRegisterData(data RandomRegisterData) {
+	fmt.Printf("%+v", data)
+}
+
 func createNewAccount() {
 	randomUsername := getRandomUsername() + "_" + generateRandomID(3)
 	randomEmail := getEmail(randomUsername)
@@ -31,7 +35,7 @@ func createNewAccount() {
 
 	getTwitchCookies()
 
-	fmt.Printf("%+v", registerPostData)
+	printRegisterData(registerPostData)
 }
 
 func getRandomUsername() string {
