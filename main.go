@@ -138,4 +138,6 @@ func getTwitchCookies() map[string]string {
 	return cookiesMap
 }
 
-func 
+func KasdaResolver() {
+
+}
