@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	capsolver_go "github.com/capsolver/capsolver-go"
 	"github.com/goombaio/namegenerator"
 	"github.com/sethvargo/go-password/password"
 )
@@ -140,5 +141,15 @@ func getTwitchCookies() map[string]string {
 }
 
 func kasdaResolver() {
-
+	capSolver := capsolver_go.CapSolver{ApiKey: "..."}
+	solution, err := capSolver.Solve(map[string]any{
+		"type":             "FunCaptchaTaskProxyLess",
+		"websiteURL":       "https://www.yourwebsite.com",
+		"websitePublicKey": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+	})
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
+	fmt.Println(solution)
 }
