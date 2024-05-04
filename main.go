@@ -9,7 +9,6 @@ import (
 	"strings"
 	"time"
 
-	capsolver_go "github.com/capsolver/capsolver-go"
 	"github.com/goombaio/namegenerator"
 	"github.com/sethvargo/go-password/password"
 )
@@ -143,15 +142,5 @@ func getTwitchCookies() map[string]string {
 }
 
 func kasdaResolver() {
-	capSolver := capsolver_go.CapSolver{ApiKey: config.CapSolverKey}
-	solution, err := capSolver.Solve(map[string]any{
-		"type":       "AntiKasadaTask",
-		"websiteURL": "https://gql.twitch.tv/",
-		"websiteKey": "B278567A-C94E-457E-B419-F1D6A5D1AA6D",
-	})
-	if err != nil {
-		log.Fatal(err)
-		return
-	}
-	fmt.Println(solution)
+	// Lets migrate do salamoonder
 }
