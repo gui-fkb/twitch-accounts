@@ -145,8 +145,9 @@ func getTwitchCookies() map[string]string {
 }
 
 func kasdaResolver() {
-	//taskResponse := createKasadaTask()
-	taskResult := getTaskResult("adc274ec-6210-46f3-9a2c-76d19b7ce6f1")
+	taskResponse := createKasadaTask()
+	time.Sleep(time.Second * 5)
+	taskResult := getTaskResult(taskResponse.TaskId)
 
 	fmt.Println(taskResult)
 }
