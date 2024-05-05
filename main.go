@@ -1,7 +1,10 @@
 package main
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"math/rand"
 	"net/http"
@@ -142,5 +145,41 @@ func getTwitchCookies() map[string]string {
 }
 
 func kasdaResolver() {
-	// Lets migrate do salamoonder
+	taskResponse := createKasadaTask()
+
+	fmt.Println(taskResponse)
+}
+
+func createKasadaTask() TaskResponse {
+	requestBody := CreateKasadaTask{
+		ApiKey: config.SalamonderKey,
+		Task: Task{
+			Type:   "KasadaCaptchaSolver",
+			Pjs:    "https://k.twitchcdn.net/149e9513-01fa-4fb0-aad4-566afd725d1b/2d206a39-8ed7-437e-a3be-862e0f06eea3/p.js",
+			CdOnly: false,
+		},
+	}
+
+	jsonBody, err := json.Marshal(requestBody)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	resp, err := http.Post("https://salamoonder.com/api/createTask", "application/json", bytes.NewBuffer(jsonBody))
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println(string(body))
+
+	taskResp := TaskResponse{}
+	json.Unmarshal(body, &taskResp)
+
+	return taskResp
 }
