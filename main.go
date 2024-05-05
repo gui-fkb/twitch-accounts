@@ -47,6 +47,7 @@ func createNewAccount() {
 		log.Fatal("Unable to get register token!")
 	}
 
+	fmt.Println("Creating account...")
 	registerPostData.IntegrityToken = integrityData.Token
 
 	fmt.Printf("%+v", registerPostData)
@@ -214,7 +215,7 @@ func getTaskResult(taskId string) ResultTaskResponse {
 	return taskResponse
 }
 
-func getIntegrityOption(taskResponse ResultTaskResponse) IntegrityInfo {
+func getIntegrityOption(taskResponse ResultTaskResponse) {
 	client := &http.Client{}
 
 	req, err := http.NewRequest("OPTIONS", "https://passport.twitch.tv/integrity", nil)
