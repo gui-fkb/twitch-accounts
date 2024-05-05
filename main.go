@@ -145,12 +145,13 @@ func getTwitchCookies() map[string]string {
 }
 
 func kasdaResolver() {
-	taskResponse := createKasadaTask()
+	//taskResponse := createKasadaTask()
+	taskResult := getTaskResult("adc274ec-6210-46f3-9a2c-76d19b7ce6f1")
 
-	fmt.Println(taskResponse)
+	fmt.Println(taskResult)
 }
 
-func createKasadaTask() TaskResponse {
+func createKasadaTask() CreateTaskResponse {
 	requestBody := CreateKasadaTask{
 		ApiKey: config.SalamonderKey,
 		Task: Task{
@@ -178,8 +179,25 @@ func createKasadaTask() TaskResponse {
 
 	fmt.Println(string(body))
 
-	taskResp := TaskResponse{}
+	taskResp := CreateTaskResponse{}
 	json.Unmarshal(body, &taskResp)
 
 	return taskResp
+}
+
+func getTaskResult(taskId string) ResultTaskResponse {
+	task := GetTaskResult{TaskId: taskId}
+
+	jsonBody, _ := json.Marshal(task)
+
+	resp, _ := http.Post("https://salamoonder.com/api/getTaskResult", "application/json", bytes.NewBuffer(jsonBody))
+	defer resp.Body.Close()
+
+	body, _ := io.ReadAll(resp.Body)
+
+	taskResponse := ResultTaskResponse{}
+
+	json.Unmarshal(body, &taskResponse)
+
+	return taskResponse
 }
