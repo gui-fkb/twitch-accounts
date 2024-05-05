@@ -17,8 +17,6 @@ import (
 )
 
 func main() {
-	kasdaResolver()
-
 	fmt.Println("twitch-accounts by xBadApple -  https://github.com/xBadApple")
 
 	if config.CapSolverKey == "your_captcha_key" {
@@ -26,6 +24,7 @@ func main() {
 	}
 
 	createNewAccount()
+
 }
 
 func createNewAccount() {
@@ -38,7 +37,7 @@ func createNewAccount() {
 	cookies := getTwitchCookies()
 
 	fmt.Println("Getting kasada code")
-	kasdaResolver()
+	kasadaResolver()
 
 	fmt.Printf("%+v", registerPostData)
 	fmt.Printf("%+v", cookies)
@@ -144,7 +143,7 @@ func getTwitchCookies() map[string]string {
 	return cookiesMap
 }
 
-func kasdaResolver() {
+func kasadaResolver() {
 	taskResponse := createKasadaTask()
 	time.Sleep(time.Second * 5)
 	taskResult := getTaskResult(taskResponse.TaskId)
