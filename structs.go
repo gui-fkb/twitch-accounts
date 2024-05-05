@@ -49,3 +49,8 @@ type ResultTaskResponse struct {
 	Solution map[string]string `json:"solution"`
 	Status   string            `json:"status"`
 }
+
+type IntegrityInfo struct {
+	Token   string
+	Cookies map[string]string
+}

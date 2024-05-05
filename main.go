@@ -37,7 +37,17 @@ func createNewAccount() {
 	cookies := getTwitchCookies()
 
 	fmt.Println("Getting kasada code")
-	kasadaResolver()
+	taskResponse := kasadaResolver()
+
+	fmt.Println("Getting local integrity token") // Add proxy later into integrity
+	getIntegrityOption(taskResponse)
+
+	integrityData := integrityGetToken(taskResponse)
+	if integrityData.Token == "" {
+		log.Fatal("Unable to get register token!")
+	}
+
+	registerPostData.IntegrityToken = integrityData.Token
 
 	fmt.Printf("%+v", registerPostData)
 	fmt.Printf("%+v", cookies)
@@ -143,12 +153,14 @@ func getTwitchCookies() map[string]string {
 	return cookiesMap
 }
 
-func kasadaResolver() {
+func kasadaResolver() ResultTaskResponse {
 	taskResponse := createKasadaTask()
 	time.Sleep(time.Second * 5)
 	taskResult := getTaskResult(taskResponse.TaskId)
 
 	fmt.Println(taskResult)
+
+	return taskResult
 }
 
 func createKasadaTask() CreateTaskResponse {
@@ -200,4 +212,78 @@ func getTaskResult(taskId string) ResultTaskResponse {
 	json.Unmarshal(body, &taskResponse)
 
 	return taskResponse
+}
+
+func getIntegrityOption(taskResponse ResultTaskResponse) IntegrityInfo {
+	client := &http.Client{}
+
+	req, err := http.NewRequest("OPTIONS", "https://passport.twitch.tv/integrity", nil)
+	if err != nil {
+		log.Fatal("Error creating request:", err)
+	}
+
+	req.Header.Set("User-Agent", taskResponse.Solution["user-agent"])
+	req.Header.Set("Accept", "*/*")
+	req.Header.Set("Accept-Language", "en-US,en;q=0.5")
+	req.Header.Set("Accept-Encoding", "gzip, deflate, br")
+	req.Header.Set("Access-Control-Request-Method", "POST")
+	req.Header.Set("Access-Control-Request-Headers", "x-kpsdk-cd,x-kpsdk-ct")
+	req.Header.Set("Referer", "https://www.twitch.tv/")
+	req.Header.Set("Origin", "https://www.twitch.tv")
+	req.Header.Set("DNT", "1")
+	req.Header.Set("Connection", "keep-alive")
+	req.Header.Set("Sec-Fetch-Dest", "empty")
+	req.Header.Set("Sec-Fetch-Mode", "cors")
+	req.Header.Set("Sec-Fetch-Site", "same-site")
+
+	// Send the request
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Fatal("Error sending request:", err)
+	}
+
+	defer resp.Body.Close()
+
+	// Print the response status code
+	fmt.Println("Response Status:", resp.Status)
+}
+
+func integrityGetToken(taskResponse ResultTaskResponse) IntegrityInfo {
+	client := &http.Client{}
+
+	req, _ := http.NewRequest("POST", "https://passport.twitch.tv/integrity", nil)
+
+	req.Header.Set("User-Agent", taskResponse.Solution["user-agent"])
+	req.Header.Set("Accept", "*/*")
+	req.Header.Set("Accept-Language", "en-US,en;q=0.5")
+	req.Header.Set("Accept-Encoding", "gzip, deflate, br")
+	req.Header.Set("Referer", "https://www.twitch.tv/")
+	req.Header.Set("x-kpsdk-ct", taskResponse.Solution["x-kpsdk-ct"])
+	req.Header.Set("x-kpsdk-cd", taskResponse.Solution["x-kpsdk-cd"])
+	req.Header.Set("Origin", "https://www.twitch.tv")
+	req.Header.Set("DNT", "1")
+	req.Header.Set("Connection", "keep-alive")
+	req.Header.Set("Sec-Fetch-Dest", "empty")
+	req.Header.Set("Sec-Fetch-Mode", "cors")
+	req.Header.Set("Sec-Fetch-Site", "same-site")
+	req.Header.Set("Content-Length", "0")
+
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Fatal("Error making request:", err)
+	}
+	defer resp.Body.Close()
+
+	integrityInfo := IntegrityInfo{}
+
+	for _, cookieData := range resp.Header["Set-Cookie"] {
+		cookie := strings.Split(cookieData, ";")[0]
+		integrityInfo.Cookies[strings.Split(cookie, "=")[0]] = strings.Split(cookie, "=")[1]
+	}
+
+	body, _ := io.ReadAll(resp.Body)
+
+	integrityInfo.Token = string(body)
+
+	return integrityInfo
 }
