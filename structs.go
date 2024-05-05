@@ -10,18 +10,18 @@ type Config struct {
 }
 
 type RandomRegisterData struct {
-	Username       string
-	Password       string
-	Birthday       Birthday
-	Email          string
-	ClientID       string
-	IntegrityToken string
+	Username       string   `json:"username"`
+	Password       string   `json:"password"`
+	Birthday       Birthday `json:"birthday"`
+	Email          string   `json:"email"`
+	ClientID       string   `json:"client_id"`
+	IntegrityToken string   `json:"integrity_token"`
 }
 
 type Birthday struct {
-	Day   int
-	Month int
-	Year  int
+	Day   int `json:"day"`
+	Month int `json:"month"`
+	Year  int `json:"year"`
 }
 
 type CreateKasadaTask struct {
@@ -53,4 +53,8 @@ type ResultTaskResponse struct {
 type IntegrityInfo struct {
 	Token   string
 	Cookies map[string]string
+}
+
+type Token struct {
+	Token string `json:"token"`
 }

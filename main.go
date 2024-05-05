@@ -42,13 +42,14 @@ func createNewAccount() {
 	fmt.Println("Getting local integrity token") // Add proxy later into integrity
 	getIntegrityOption(taskResponse)
 
-	integrityData := integrityGetToken(taskResponse)
+	integrityData := integrityGetToken(taskResponse, cookies)
 	if integrityData.Token == "" {
 		log.Fatal("Unable to get register token!")
 	}
 
 	fmt.Println("Creating account...")
 	registerPostData.IntegrityToken = integrityData.Token
+	registerFinal(cookies, registerPostData, taskResponse.Solution["user-agent"])
 
 	fmt.Printf("%+v", registerPostData)
 	fmt.Printf("%+v", cookies)
@@ -249,7 +250,7 @@ func getIntegrityOption(taskResponse ResultTaskResponse) {
 	fmt.Println("Response Status:", resp.Status)
 }
 
-func integrityGetToken(taskResponse ResultTaskResponse) IntegrityInfo {
+func integrityGetToken(taskResponse ResultTaskResponse, cookies map[string]string) Token {
 	client := &http.Client{}
 
 	req, _ := http.NewRequest("POST", "https://passport.twitch.tv/integrity", nil)
@@ -275,16 +276,48 @@ func integrityGetToken(taskResponse ResultTaskResponse) IntegrityInfo {
 	}
 	defer resp.Body.Close()
 
-	integrityInfo := IntegrityInfo{}
-
 	for _, cookieData := range resp.Header["Set-Cookie"] {
 		cookie := strings.Split(cookieData, ";")[0]
-		integrityInfo.Cookies[strings.Split(cookie, "=")[0]] = strings.Split(cookie, "=")[1]
+		cookies[strings.Split(cookie, "=")[0]] = strings.Split(cookie, "=")[1]
 	}
 
 	body, _ := io.ReadAll(resp.Body)
 
-	integrityInfo.Token = string(body)
+	token := Token{}
+	json.Unmarshal(body, &token)
 
-	return integrityInfo
+	return token
+}
+
+func registerFinal(cookies map[string]string, postParams RandomRegisterData, userAgent string) {
+	var cookiesString string
+	for key, value := range cookies {
+		cookiesString += key + "=" + value + "; "
+	}
+
+	client := &http.Client{}
+
+	jsonBody, _ := json.Marshal(postParams)
+
+	req, _ := http.NewRequest("POST", "https://passport.twitch.tv/protected_register", bytes.NewBuffer(jsonBody))
+
+	req.Header.Set("User-Agent", userAgent)
+	req.Header.Set("Accept", "*/*")
+	req.Header.Set("Accept-Language", "en-US,en;q=0.5")
+	req.Header.Set("Accept-Encoding", "gzip, deflate, br")
+	req.Header.Set("Referer", "https://www.twitch.tv/")
+	req.Header.Set("Content-Type", "text/plain;charset=UTF-8")
+	req.Header.Set("Origin", "https://www.twitch.tv")
+	req.Header.Set("DNT", "1")
+	req.Header.Set("Connection", "keep-alive")
+	req.Header.Set("Cookie", cookiesString)
+	req.Header.Set("Sec-Fetch-Dest", "empty")
+	req.Header.Set("Sec-Fetch-Mode", "cors")
+	req.Header.Set("Sec-Fetch-Site", "same-site")
+
+	resp, _ := client.Do(req)
+
+	body, _ := io.ReadAll(resp.Body)
+
+	fmt.Println(string(body))
 }
