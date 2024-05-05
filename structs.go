@@ -6,6 +6,7 @@ type Config struct {
 	UserAgent      string
 	EmailDomain    string
 	TwitchClientID string
+	SalamonderKey  string
 }
 
 type RandomRegisterData struct {
