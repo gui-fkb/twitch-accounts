@@ -54,7 +54,7 @@ func createNewAccount() {
 	fmt.Println("Creating account...")
 	registerPostData.IntegrityToken = integrityData.Token
 	registerData, err := registerFinal(cookies, registerPostData, taskResponse.Solution["user-agent"])
-	if err == nil {
+	if err != nil {
 		log.Fatal(err)
 	}
 
@@ -76,11 +76,19 @@ func createNewAccount() {
 	clientVersion := "3040e141-5964-4d72-b67d-e73c1cf355b5"
 	clientRequestId := generateRandomID(32)
 
+	fmt.Println("Getting public integrity token...")
 	publicIntegrityData, err := publicIntegrityGetToken(xDeviceId, clientRequestId, clientSessionId, clientVersion, kasada2.Solution["x-kpsdk-ct"], kasada2.Solution["x-kpsdk-cd"], accessToken, kasada2.Solution["user-agent"])
 	if err != nil {
 		log.Fatal(err)
 	}
 
+	fmt.Println("Veryfing account email...")
+	verifyEmailResponse, err := verifyEmail(xDeviceId, clientVersion, clientSessionId, accessToken, publicIntegrityData.Token, verifyCode, userId, trashMailSession.Email, kasada2.Solution["user-agent"])
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Printf("%+v", verifyEmailResponse)
 	fmt.Printf("%+v", verifyCode)
 	fmt.Printf("%+v", publicIntegrityData)
 }
@@ -499,4 +507,63 @@ func publicIntegrityGetToken(XDeviceId, ClientRequestId, ClientSessionId, Client
 	}
 
 	return publicIntegrityData, nil
+}
+
+func verifyEmail(XDeviceId, ClientVersion, ClientSessionId, accessToken, ClientIntegrity, code, userId, email, current_useragent string) (map[string]interface{}, error) {
+	query := `[{"operationName":"ValidateVerificationCode","variables":{"input":{"code":"` + code + `","key":"` + userId + `","address":"` + email + `"}},"extensions":{"persistedQuery":{"version":1,"sha256Hash":"05eba55c37ee4eff4dae260850dd6703d99cfde8b8ec99bc97a67e584ae9ec31"}}}]`
+
+	requestBody := bytes.NewBufferString(query)
+
+	headers := map[string]string{
+		"User-Agent":       current_useragent,
+		"Accept":           "application/json",
+		"Accept-Language":  "en-US",
+		"Accept-Encoding":  "identity",
+		"Referer":          "https://www.twitch.tv/",
+		"Client-Id":        config.TwitchClientID,
+		"X-Device-Id":      XDeviceId,
+		"Client-Version":   ClientVersion,
+		"Client-Session":   ClientSessionId,
+		"Authorization":    "OAuth " + accessToken,
+		"Client-Integrity": ClientIntegrity,
+		"Content-Type":     "text/plain;charset=UTF-8",
+		"Origin":           "https://www.twitch.tv",
+		"DNT":              "1",
+		"Connection":       "keep-alive",
+		"Sec-Fetch-Dest":   "empty",
+		"Sec-Fetch-Mode":   "cors",
+		"Sec-Fetch-Site":   "same-site",
+	}
+
+	req, err := http.NewRequest("POST", "https://gql.twitch.tv/gql#origin=twilight", requestBody)
+	if err != nil {
+		return nil, fmt.Errorf("error creating request: %v", err)
+	}
+
+	for key, value := range headers {
+		req.Header.Set(key, value)
+	}
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("error sending request: %v", err)
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("error reading response body: %v", err)
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("unexpected response status code: %d", resp.StatusCode)
+	}
+
+	var response map[string]interface{}
+	if err := json.Unmarshal(body, &response); err != nil {
+		return nil, fmt.Errorf("error parsing response JSON: %v", err)
+	}
+
+	return response, nil
 }
