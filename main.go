@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -18,8 +19,6 @@ import (
 )
 
 func main() {
-	testMailnator()
-
 	fmt.Println("twitch-accounts by xBadApple -  https://github.com/xBadApple")
 
 	if config.CapSolverKey == "your_captcha_key" {
@@ -32,7 +31,9 @@ func main() {
 
 func createNewAccount() {
 	randomUsername := getRandomUsername() + "_" + generateRandomID(3)
-	randomEmail := getEmail(randomUsername)
+
+	trashMailSession := getTrashMailSession()
+	randomEmail := trashMailSession.Email
 
 	registerPostData := generateRandomRegisterData(randomUsername, randomEmail)
 
@@ -52,7 +53,19 @@ func createNewAccount() {
 
 	fmt.Println("Creating account...")
 	registerPostData.IntegrityToken = integrityData.Token
-	registerFinal(cookies, registerPostData, taskResponse.Solution["user-agent"])
+	registerData, err := registerFinal(cookies, registerPostData, taskResponse.Solution["user-agent"])
+	if err == nil {
+		log.Fatal(err)
+	}
+
+	userId := registerData.UserId
+	accessToken := registerData.AccessToken
+
+	fmt.Println("Account created!")
+	fmt.Println("UserID:", userId, "AccessToken:", accessToken)
+
+	fmt.Println("Waiting email verification ...")
+	verifyCode := getVerificationCode(trashMailSession)
 
 	fmt.Printf("%+v", registerPostData)
 	fmt.Printf("%+v", cookies)
@@ -292,7 +305,7 @@ func integrityGetToken(taskResponse ResultTaskResponse, cookies map[string]strin
 	return token
 }
 
-func registerFinal(cookies map[string]string, postParams RandomRegisterData, userAgent string) {
+func registerFinal(cookies map[string]string, postParams RandomRegisterData, userAgent string) (*AccountRegisterResponse, error) {
 	var cookiesString string
 	for key, value := range cookies {
 		cookiesString += key + "=" + value + "; "
@@ -322,10 +335,18 @@ func registerFinal(cookies map[string]string, postParams RandomRegisterData, use
 
 	body, _ := io.ReadAll(resp.Body)
 
-	fmt.Println(string(body))
+	if resp.StatusCode == 200 {
+		registerResponse := &AccountRegisterResponse{}
+		json.Unmarshal(body, registerResponse)
+
+		return registerResponse, nil
+	} else {
+		return nil, errors.New(string(body))
+	}
+
 }
 
-func testMailnator() {
+func getTrashMailSession() *MailnatorData {
 	var sess GoGmailnator.Session
 
 	// session will expire after a few hours
@@ -344,7 +365,7 @@ func testMailnator() {
 		fmt.Println("Session is alive.")
 	} else {
 		fmt.Println("Session is dead.")
-		return
+		return nil
 	}
 
 	emailAddress, err := sess.GenerateEmailAddress()
@@ -354,12 +375,25 @@ func testMailnator() {
 
 	fmt.Println("Email address is " + emailAddress + ".")
 
-	emails, err := sess.RetrieveMail(emailAddress)
-	if err != nil {
-		panic(err)
+	mailData := &MailnatorData{
+		Session: sess,
+		Email:   emailAddress,
 	}
 
-	for _, email := range emails {
-		fmt.Printf("From: %s, Subject: %s, Time: %s\n", email.From, email.Subject, email.Time)
-	}
+	return mailData
+
+	/*
+		emails, err := sess.RetrieveMail(emailAddress)
+		if err != nil {
+			panic(err)
+		}
+
+		for _, email := range emails {
+			fmt.Printf("From: %s, Subject: %s, Time: %s\n", email.From, email.Subject, email.Time)
+		}
+	*/
+}
+
+func getVerificationCode(mailData MailnatorData) (string, error) {
+	return "", nil
 }

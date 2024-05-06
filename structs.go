@@ -1,5 +1,7 @@
 package main
 
+import "github.com/ox-y/GoGmailnator"
+
 type Config struct {
 	CapSolverKey   string
 	Proxy          string
@@ -56,4 +58,15 @@ type IntegrityInfo struct {
 
 type Token struct {
 	Token string `json:"token"`
+}
+
+type MailnatorData struct {
+	Session GoGmailnator.Session
+	Email   string
+}
+
+type AccountRegisterResponse struct {
+	AccessToken  string `json:"access_token"`
+	RedirectPath string `json:"redirect_path"`
+	UserId       string `json:"userID"`
 }
