@@ -75,3 +75,34 @@ type PublicIntegrityData struct {
 	Token   string
 	Cookies string
 }
+
+type Error struct {
+	Code     interface{} `json:"code"`
+	Typename string      `json:"__typename"`
+}
+
+type Request struct {
+	Status   string `json:"status"`
+	Typename string `json:"__typename"`
+}
+
+type ValidateVerificationCode struct {
+	Error    Error   `json:"error"`
+	Request  Request `json:"request"`
+	Typename string  `json:"__typename"`
+}
+
+type Extensions struct {
+	DurationMilliseconds int    `json:"durationMilliseconds"`
+	OperationName        string `json:"operationName"`
+	RequestID            string `json:"requestID"`
+}
+
+type Data struct {
+	ValidateVerificationCode ValidateVerificationCode `json:"validateVerificationCode"`
+}
+
+type VerificationCodeResponse struct {
+	Data       Data       `json:"data"`
+	Extensions Extensions `json:"extensions"`
+}
