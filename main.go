@@ -41,8 +41,8 @@ func createNewAccount() {
 	cookies := getTwitchCookies()
 
 	fmt.Println("Getting kasada code")
-	taskResponse := kasadaResolver()
 
+	taskResponse := kasadaResolver()
 	fmt.Println("Getting local integrity token") // Add proxy later into integrity
 	getIntegrityOption(taskResponse)
 
@@ -68,7 +68,21 @@ func createNewAccount() {
 	time.Sleep(time.Second * 2) // Sleep for 2 seconds because twitch verification email can have some delay
 	verifyCode, _ := getVerificationCode(trashMailSession)
 
+	fmt.Println("Getting Kasada Code")
+	kasada2 := kasadaResolver()
+
+	clientSessionId := generateRandomID(16)
+	xDeviceId := cookies["unique_id"]
+	clientVersion := "3040e141-5964-4d72-b67d-e73c1cf355b5"
+	clientRequestId := generateRandomID(32)
+
+	publicIntegrityData, err := publicIntegrityGetToken(xDeviceId, clientRequestId, clientSessionId, clientVersion, kasada2.Solution["x-kpsdk-ct"], kasada2.Solution["x-kpsdk-cd"], accessToken, kasada2.Solution["user-agent"])
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	fmt.Printf("%+v", verifyCode)
+	fmt.Printf("%+v", publicIntegrityData)
 }
 
 func getRandomUsername() string {
@@ -416,4 +430,73 @@ func getVerificationCode(mailData *MailnatorData) (string, error) {
 	fmt.Println("Verification code:", verificationCode)
 
 	return verificationCode, nil
+}
+
+func publicIntegrityGetToken(XDeviceId, ClientRequestId, ClientSessionId, ClientVersion, kpsdkct, kpsdkcd, accesstoken, current_useragent string) (publicIntegrity *PublicIntegrityData, err error) {
+	requestBody := []byte("{}")
+
+	headers := map[string]string{
+		"User-Agent":        current_useragent,
+		"Accept":            "application/json",
+		"Accept-Language":   "en-US",
+		"Accept-Encoding":   "identity",
+		"Authorization":     "OAuth " + accesstoken,
+		"Referer":           "https://www.twitch.tv/",
+		"Client-Id":         config.TwitchClientID,
+		"X-Device-Id":       XDeviceId,
+		"Client-Request-Id": ClientRequestId,
+		"Client-Session-Id": ClientSessionId,
+		"Client-Version":    ClientVersion,
+		"x-kpsdk-ct":        kpsdkct,
+		"x-kpsdk-cd":        kpsdkcd,
+		"Origin":            "https://www.twitch.tv",
+		"DNT":               "1",
+		"Connection":        "keep-alive",
+		"Sec-Fetch-Dest":    "empty",
+		"Sec-Fetch-Mode":    "cors",
+		"Sec-Fetch-Site":    "same-site",
+		"Content-Length":    "0",
+	}
+
+	req, err := http.NewRequest("POST", "https://gql.twitch.tv/integrity", bytes.NewBuffer(requestBody))
+	if err != nil {
+		return nil, err
+	}
+
+	for key, value := range headers {
+		req.Header.Set(key, value)
+	}
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("unexpected response status code: %d", resp.StatusCode)
+	}
+
+	var cookiesReturn string
+
+	for _, cookieData := range resp.Header["Set-Cookie"] {
+		p1 := strings.Split(cookieData, ";")[0]
+		cookiesReturn += cookiesReturn + p1 + "; "
+	}
+
+	tokenReturn := Token{}
+	json.Unmarshal(body, &tokenReturn)
+
+	publicIntegrityData := &PublicIntegrityData{
+		Cookies: cookiesReturn,
+		Token:   tokenReturn.Token,
+	}
+
+	return publicIntegrityData, nil
 }

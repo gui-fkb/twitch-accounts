@@ -70,3 +70,8 @@ type AccountRegisterResponse struct {
 	RedirectPath string `json:"redirect_path"`
 	UserId       string `json:"userID"`
 }
+
+type PublicIntegrityData struct {
+	Token   string
+	Cookies string
+}
