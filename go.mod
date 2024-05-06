@@ -7,3 +7,5 @@ require github.com/goombaio/namegenerator v0.0.0-20181006234301-989e774b106e
 require github.com/sethvargo/go-password v0.3.0
 
 require github.com/capsolver/capsolver-go v0.0.0-20240131070505-d99882bd4bc2
+
+require github.com/ox-y/GoGmailnator v0.0.0-20221007105726-efc90fa60848 // indirect

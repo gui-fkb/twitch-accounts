@@ -13,10 +13,13 @@ import (
 	"time"
 
 	"github.com/goombaio/namegenerator"
+	"github.com/ox-y/GoGmailnator"
 	"github.com/sethvargo/go-password/password"
 )
 
 func main() {
+	testMailnator()
+
 	fmt.Println("twitch-accounts by xBadApple -  https://github.com/xBadApple")
 
 	if config.CapSolverKey == "your_captcha_key" {
@@ -320,4 +323,43 @@ func registerFinal(cookies map[string]string, postParams RandomRegisterData, use
 	body, _ := io.ReadAll(resp.Body)
 
 	fmt.Println(string(body))
+}
+
+func testMailnator() {
+	var sess GoGmailnator.Session
+
+	// session will expire after a few hours
+	err := sess.Init(nil)
+	if err != nil {
+		panic(err)
+	}
+
+	// calling sess.GenerateEmailAddress or sess.RetrieveMail with a dead session will cause an error
+	isAlive, err := sess.IsAlive()
+	if err != nil {
+		panic(err)
+	}
+
+	if isAlive {
+		fmt.Println("Session is alive.")
+	} else {
+		fmt.Println("Session is dead.")
+		return
+	}
+
+	emailAddress, err := sess.GenerateEmailAddress()
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println("Email address is " + emailAddress + ".")
+
+	emails, err := sess.RetrieveMail(emailAddress)
+	if err != nil {
+		panic(err)
+	}
+
+	for _, email := range emails {
+		fmt.Printf("From: %s, Subject: %s, Time: %s\n", email.From, email.Subject, email.Time)
+	}
 }
