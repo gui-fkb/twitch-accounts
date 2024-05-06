@@ -65,10 +65,10 @@ func createNewAccount() {
 	fmt.Println("UserID:", userId, "AccessToken:", accessToken)
 
 	fmt.Println("Waiting email verification ...")
-	verifyCode := getVerificationCode(trashMailSession)
+	time.Sleep(time.Second * 2)
+	verifyCode, _ := getVerificationCode(trashMailSession)
 
-	fmt.Printf("%+v", registerPostData)
-	fmt.Printf("%+v", cookies)
+	fmt.Printf("%+v", verifyCode)
 }
 
 func getRandomUsername() string {
@@ -90,7 +90,7 @@ func generateRandomID(length int) string {
 }
 
 func getEmail(username string) string {
-	return fmt.Sprintf("%s@%s", username, config.EmailDomain)
+	return fmt.Sprintf("%s@%s", username, config.EmailDomain) // Unused right now
 }
 
 func generateRandomRegisterData(uname string, email string) RandomRegisterData {
@@ -394,6 +394,26 @@ func getTrashMailSession() *MailnatorData {
 	*/
 }
 
-func getVerificationCode(mailData MailnatorData) (string, error) {
-	return "", nil
+func getVerificationCode(mailData *MailnatorData) (string, error) {
+	emails, err := mailData.Session.RetrieveMail(mailData.Email)
+	if err != nil {
+		panic(err)
+	}
+
+	var verificationCode string
+	for _, email := range emails {
+		if strings.Contains(email.Subject, "Twitch") {
+			split := strings.Split(email.Subject, "–")[0]
+			verificationCode = strings.TrimSpace(split)
+			break
+		}
+	}
+
+	if verificationCode == "" {
+		return "", errors.New("there is no twitch email")
+	}
+
+	fmt.Println("Verification code:", verificationCode)
+
+	return verificationCode, nil
 }
