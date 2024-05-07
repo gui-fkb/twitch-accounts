@@ -56,7 +56,7 @@ Remember, automations are against Twitch rules, do not abuse this project. I've 
 
 ## 💭・ChangeLog
 ```diff
-v0.0.1 ⋮ 2022-03-28
+v0.0.1 ⋮ 07 may 2024
 + Added Main Script (creating accounts + captcha breaker + email verification)
 ```
 
