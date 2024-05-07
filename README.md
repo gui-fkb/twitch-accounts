@@ -3,23 +3,24 @@
 </h4>
 
 <h1 align="center">
-  🟣 Twitch Accounts 🟣
+  <p>🟣 Twitch Accounts 🟣</p>
+  <p align="center">
+  A Golang bot to create Twitch Accounts.
+  </p>
+
 </h1>
 
-<p align="center">
-  A Golang bot to create Twitch Accounts.
-</p>
-
-✔️ Twitch Accounts provides a script for creating Twitch accounts and verifying them using temporary email addresses. It can be useful for various purposes, such as testing or automation.. ✔️
-
-**⭐ If you found the project helpful, illuminate it with your support by dropping a brilliant star! 🌟**
-
+<h4 align="center">
+  **⭐ If you found the project helpful, illuminate it with your support by dropping a brilliant star! 🌟**
+</h4>
 
 ## :fire: Features
 
 ✔ Create accounts on TwitchTV
 ✔ Verify account email
 ✔ Simple and easy-to-use script
+
+---
 
 ## ⚙️・How to setup Twitch Accounts?
 ```sh-session
