@@ -2,9 +2,9 @@
   Working as 07 may 2024 !
 </h4>
 
-<h2 align="center">
+<h1 align="center">
   🟣 Twitch Accounts 🟣
-</h2>
+</h1>
 
 <p align="center">
   A Golang bot to create Twitch Accounts.
@@ -24,7 +24,6 @@ Twitch Accounts provides a script for creating Twitch accounts and verifying the
 ✔ Verify account email
 ✔ Simple and easy-to-use script
 
----
 
 ## ⚙️・How to setup Twitch Accounts?
 ```sh-session
@@ -62,11 +61,12 @@ v0.0.1 ⋮ 2022-03-28
 + Added Main Script (creating accounts + captcha breaker + email verification)
 ```
 
+---
+
 <p>
   All the registered accounts information is going to be stored at results/accounts.txt
 </p>
 
----
 
 ## Author
 Authored by: xBadApple [Github](https://github.com/xBadApple)
