@@ -22,6 +22,7 @@ Twitch Accounts provides a script for creating Twitch accounts and verifying the
 ✔ Verify account email
 ✔ Simple and easy-to-use script
 
+---
 
 ## ⚙️・How to setup Twitch Accounts?
 ```sh-session
