@@ -2,17 +2,21 @@
   Working as 07 may 2024 !
 </h4>
 
-<h1 align="center">
-  <p>🟣 Twitch Accounts 🟣</p>
-  <h4 align="center">
+<h2 align="center">
+  🟣 Twitch Accounts 🟣
+</h2>
+
+<p align="center">
   A Golang bot to create Twitch Accounts.
-  </h4>
+</p>
 
-</h1>
+<hr>
 
-<h4 align="center">
-  **⭐ If you found the project helpful, illuminate it with your support by dropping a brilliant star! 🌟**
-</h4>
+Twitch Accounts provides a script for creating Twitch accounts and verifying them using temporary email addresses. It can be useful for various purposes, such as testing or automation
+
+**⭐ If you found the project helpful, illuminate it with your support by dropping a brilliant star! 🌟**
+
+<hr>
 
 ## :fire: Features
 
@@ -47,13 +51,12 @@ This project is licensed under the GPL General Public License v3.0 License - see
 ## ⭐・Contributing
 Contributions are welcome! If you have any ideas, suggestions, or improvements, feel free to open an issue or create a pull request.
 
-## ⭐・Notice
-Contributions are welcome! If you have any ideas, suggestions, or improvements, feel free to open an issue or create a pull request.
 
 
 ## ❗・Notice
 Remember, automations are against Twitch rules, do not abuse this project. I've created this tool out of genuine interest and released it for wider use. Let's keep it positive and avoid any misuse to maintain a healthy environment on Twitch.
 
+## 💭・ChangeLog
 ```diff
 v0.0.1 ⋮ 2022-03-28
 + Added Main Script (creating accounts + captcha breaker + email verification)
@@ -63,6 +66,7 @@ v0.0.1 ⋮ 2022-03-28
   All the registered accounts information is going to be stored at results/accounts.txt
 </p>
 
+---
 
 ## Author
 Authored by: xBadApple [Github](https://github.com/xBadApple)
