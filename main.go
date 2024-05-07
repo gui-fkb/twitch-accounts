@@ -10,6 +10,7 @@ import (
 	"math/rand"
 	"net/http"
 	"net/url"
+	"os"
 	"strings"
 	"time"
 
@@ -18,15 +19,17 @@ import (
 	"github.com/sethvargo/go-password/password"
 )
 
+var outputFile string = "./results/accounts.txt"
+
 func main() {
 	fmt.Println("twitch-accounts by xBadApple -  https://github.com/xBadApple")
+	//fastEmailTest() // Uncomment this line if you want to test the trash email in a fast way, dont forget to enable breakpoints inside the function
 
 	if config.CapSolverKey == "your_captcha_key" {
 		log.Fatal("It looks like your captcha solver API token isn't configured yet. Change it in the config.go file and run again.")
 	}
 
 	createNewAccount()
-
 }
 
 func createNewAccount() {
@@ -82,11 +85,22 @@ func createNewAccount() {
 		log.Fatal(err)
 	}
 
-	fmt.Println("Veryfing account email...")
+	fmt.Println("Verifying account email...")
 	verifyEmailResponse, err := verifyEmail(xDeviceId, clientVersion, clientSessionId, accessToken, publicIntegrityData.Token, verifyCode, userId, trashMailSession.Email, kasada2.Solution["user-agent"])
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	if verifyEmailResponse == nil {
+		log.Fatal("Email verification failed!")
+	}
+
+	if verifyEmailResponse.Data.ValidateVerificationCode.Request.Status == "VERIFIED" {
+		saveAccountData(registerPostData, userId, accessToken)
+		fmt.Println("Account verified and saved!")
+	}
+
+	fmt.Println("Account is ready!")
 
 	fmt.Printf("%+v", verifyEmailResponse)
 	fmt.Printf("%+v", verifyCode)
@@ -509,7 +523,7 @@ func publicIntegrityGetToken(XDeviceId, ClientRequestId, ClientSessionId, Client
 	return publicIntegrityData, nil
 }
 
-func verifyEmail(XDeviceId, ClientVersion, ClientSessionId, accessToken, ClientIntegrity, code, userId, email, current_useragent string) (map[string]interface{}, error) {
+func verifyEmail(XDeviceId, ClientVersion, ClientSessionId, accessToken, ClientIntegrity, code, userId, email, current_useragent string) (*VerificationCodeResponse, error) {
 	query := `{"operationName":"ValidateVerificationCode","variables":{"input":{"code":"` + code + `","key":"` + userId + `","address":"` + email + `"}},"extensions":{"persistedQuery":{"version":1,"sha256Hash":"05eba55c37ee4eff4dae260850dd6703d99cfde8b8ec99bc97a67e584ae9ec31"}}}`
 
 	requestBody := bytes.NewBufferString(query)
@@ -560,10 +574,33 @@ func verifyEmail(XDeviceId, ClientVersion, ClientSessionId, accessToken, ClientI
 		return nil, fmt.Errorf("unexpected response status code: %d", resp.StatusCode)
 	}
 
-	var response map[string]interface{}
-	if err := json.Unmarshal(body, &response); err != nil {
+	verificationResponse := &VerificationCodeResponse{}
+	if err := json.Unmarshal(body, &verificationResponse); err != nil {
 		return nil, fmt.Errorf("error parsing response JSON: %v", err)
 	}
 
-	return response, nil
+	return verificationResponse, nil
+}
+
+func saveAccountData(r RandomRegisterData, userId string, accesToken string) {
+	// Check if the file exists
+	if _, err := os.Stat(outputFile); os.IsNotExist(err) {
+		// If the file doesn't exist, create an empty file
+		if err := os.WriteFile(outputFile, []byte(""), 0644); err != nil {
+			panic(err)
+		}
+	}
+
+	dataAll := r.Username + " " + r.Password + " " + r.Email + " " + userId + " " + accesToken + "\n"
+
+	file, err := os.OpenFile(outputFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		panic(err)
+	}
+	defer file.Close()
+
+	// Write data to the file
+	if _, err := file.Write([]byte(dataAll)); err != nil {
+		panic(err)
+	}
 }
