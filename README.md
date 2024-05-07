@@ -4,9 +4,9 @@
 
 <h1 align="center">
   <p>🟣 Twitch Accounts 🟣</p>
-  <p align="center">
+  <h4 align="center">
   A Golang bot to create Twitch Accounts.
-  </p>
+  </h4>
 
 </h1>
 
