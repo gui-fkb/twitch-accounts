@@ -68,7 +68,7 @@ func createNewAccount() {
 	fmt.Println("UserID:", userId, "AccessToken:", accessToken)
 
 	fmt.Println("Waiting email verification ...")
-	time.Sleep(time.Second * 2) // Sleep for 2 seconds because twitch verification email can have some delay
+	time.Sleep(time.Second * 10) // Sleep for 10 seconds because twitch verification email can have some delay
 	verifyCode, _ := getVerificationCode(trashMailSession)
 
 	fmt.Println("Getting Kasada Code")
@@ -101,10 +101,6 @@ func createNewAccount() {
 	}
 
 	fmt.Println("Account is ready!")
-
-	fmt.Printf("%+v", verifyEmailResponse)
-	fmt.Printf("%+v", verifyCode)
-	fmt.Printf("%+v", publicIntegrityData)
 }
 
 func getRandomUsername() string {
@@ -209,7 +205,7 @@ func getTwitchCookies() map[string]string {
 
 func kasadaResolver() ResultTaskResponse {
 	taskResponse := createKasadaTask()
-	time.Sleep(time.Second * 1)
+	time.Sleep(time.Second * 2)
 	taskResult := getTaskResult(taskResponse.TaskId)
 
 	fmt.Println(taskResult)
