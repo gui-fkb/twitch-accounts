@@ -7,7 +7,7 @@
 </h1>
 
 <p align="center">
-  A Golang bot to create Twitch Accounts.
+ A Golang bot for creating Twitch accounts
 </p>
 
 Twitch Accounts provides a script for creating Twitch accounts and verifying them using temporary email addresses. It can be useful for various purposes, such as testing or automation
