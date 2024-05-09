@@ -57,7 +57,7 @@
   
   ## 💭・ChangeLog
   ```diff
-  v0.0.2 ⋮ 07 may 2024
+  v0.0.2 ⋮ 09 may 2024
   + Code cleanup + exceptions handling
 
   v0.0.1 ⋮ 07 may 2024
