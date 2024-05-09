@@ -35,30 +35,49 @@ func main() {
 func createNewAccount() {
 	randomUsername := getRandomUsername() + "_" + generateRandomID(3)
 
-	trashMailSession := getTrashMailSession()
+	trashMailSession, err := getTrashMailSession()
+	if err != nil {
+		fmt.Println(err, "/n account creation exited")
+		return
+	}
+
 	randomEmail := trashMailSession.Email
 
 	registerPostData := generateRandomRegisterData(randomUsername, randomEmail)
 
 	fmt.Println("Getting twitch cookies.")
-	cookies := getTwitchCookies()
+	cookies, err := getTwitchCookies()
+	if err != nil {
+		fmt.Println(err, "/n account creation exited")
+		return
+	}
 
 	fmt.Println("Getting kasada code")
+	taskResponse, err := kasadaResolver()
+	if err != nil {
+		fmt.Println(err, "/n account creation exited")
+		return
+	}
 
-	taskResponse := kasadaResolver()
 	fmt.Println("Getting local integrity token") // Add proxy later into integrity
-	getIntegrityOption(taskResponse)
+	err = getIntegrityOption(taskResponse)
+	if err != nil {
+		fmt.Println(err, "/n account creation exited")
+		return
+	}
 
-	integrityData := integrityGetToken(taskResponse, cookies)
-	if integrityData.Token == "" {
-		log.Fatal("Unable to get register token!")
+	integrityData, err := integrityGetToken(taskResponse, cookies)
+	if err != nil {
+		fmt.Println(err, "/n unable to register token - account creation exited")
+		return
 	}
 
 	fmt.Println("Creating account...")
 	registerPostData.IntegrityToken = integrityData.Token
 	registerData, err := registerFinal(cookies, registerPostData, taskResponse.Solution["user-agent"])
 	if err != nil {
-		log.Fatal(err)
+		fmt.Println(err, "/n error creating account - account creation exited")
+		return
 	}
 
 	userId := registerData.UserId
@@ -68,11 +87,19 @@ func createNewAccount() {
 	fmt.Println("UserID:", userId, "AccessToken:", accessToken)
 
 	fmt.Println("Waiting email verification ...")
-	time.Sleep(time.Second * 10) // Sleep for 10 seconds because twitch verification email can have some delay
-	verifyCode, _ := getVerificationCode(trashMailSession)
+	time.Sleep(time.Second * 8) // Sleep for 8 seconds because twitch verification email can have some delay
+	verifyCode, err := getVerificationCode(trashMailSession)
+	if err != nil {
+		fmt.Println(err, "/n error getting verification code - account creation exited")
+		return
+	}
 
 	fmt.Println("Getting Kasada Code")
-	kasada2 := kasadaResolver()
+	kasada2, err := kasadaResolver()
+	if err != nil {
+		fmt.Println(err, "/n error getting kasada code - account creation exited")
+		return
+	}
 
 	clientSessionId := generateRandomID(16)
 	xDeviceId := cookies["unique_id"]
@@ -82,21 +109,29 @@ func createNewAccount() {
 	fmt.Println("Getting public integrity token...")
 	publicIntegrityData, err := publicIntegrityGetToken(xDeviceId, clientRequestId, clientSessionId, clientVersion, kasada2.Solution["x-kpsdk-ct"], kasada2.Solution["x-kpsdk-cd"], accessToken, kasada2.Solution["user-agent"])
 	if err != nil {
-		log.Fatal(err)
+		fmt.Println(err, "/n error getting public integrity token - account creation exited")
+		return
 	}
 
 	fmt.Println("Verifying account email...")
 	verifyEmailResponse, err := verifyEmail(xDeviceId, clientVersion, clientSessionId, accessToken, publicIntegrityData.Token, verifyCode, userId, trashMailSession.Email, kasada2.Solution["user-agent"])
 	if err != nil {
-		log.Fatal(err)
+		fmt.Println(err, "/n error verifying account email - account creation exited")
+		return
 	}
 
 	if verifyEmailResponse == nil {
-		log.Fatal("Email verification failed!")
+		fmt.Println(err, "/n email verification failed - account creation exited")
+		return
 	}
 
 	if verifyEmailResponse.Data.ValidateVerificationCode.Request.Status == "VERIFIED" {
 		saveAccountData(registerPostData, userId, accessToken)
+		if err != nil {
+			fmt.Println(err, "/n error saving account data - account creation exited")
+			return
+		}
+
 		fmt.Println("Account verified and saved!")
 	}
 
@@ -153,7 +188,7 @@ func generateRandomBirthday() Birthday {
 	}
 }
 
-func getTwitchCookies() map[string]string {
+func getTwitchCookies() (map[string]string, error) {
 	cookiesMap := make(map[string]string)
 	httpClient := &http.Client{}
 	var proxyURL *url.URL
@@ -164,7 +199,7 @@ func getTwitchCookies() map[string]string {
 		var err error
 		proxyURL, err = url.Parse(config.Proxy)
 		if err != nil {
-			log.Fatal("Error parsing proxy URL:", err)
+			return nil, err
 		}
 
 		httpClient.Transport = &http.Transport{
@@ -174,7 +209,7 @@ func getTwitchCookies() map[string]string {
 
 	req, err := http.NewRequest("GET", "https://twitch.tv", nil)
 	if err != nil {
-		log.Fatal("Error creating the request:", err)
+		return nil, err
 	}
 
 	req.Header.Set("User-Agent", "current_useragent")
@@ -191,7 +226,7 @@ func getTwitchCookies() map[string]string {
 
 	resp, err := httpClient.Do(req)
 	if err != nil {
-		log.Fatal("Error making request:", err)
+		return nil, err
 	}
 	defer resp.Body.Close()
 
@@ -200,20 +235,26 @@ func getTwitchCookies() map[string]string {
 		cookiesMap[strings.Split(cookie, "=")[0]] = strings.Split(cookie, "=")[1]
 	}
 
-	return cookiesMap
+	return cookiesMap, nil
 }
 
-func kasadaResolver() ResultTaskResponse {
-	taskResponse := createKasadaTask()
+func kasadaResolver() (*ResultTaskResponse, error) {
+	taskResponse, err := createKasadaTask()
+	if err != nil {
+		return nil, err
+	}
+
 	time.Sleep(time.Second * 2)
-	taskResult := getTaskResult(taskResponse.TaskId)
 
-	fmt.Println(taskResult)
+	taskResult, err := getTaskResult(taskResponse.TaskId)
+	if err != nil {
+		return nil, err
+	}
 
-	return taskResult
+	return taskResult, nil
 }
 
-func createKasadaTask() CreateTaskResponse {
+func createKasadaTask() (*CreateTaskResponse, error) {
 	requestBody := CreateKasadaTask{
 		ApiKey: config.CapSolverKey,
 		Task: Task{
@@ -225,51 +266,66 @@ func createKasadaTask() CreateTaskResponse {
 
 	jsonBody, err := json.Marshal(requestBody)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
 	resp, err := http.Post("https://salamoonder.com/api/createTask", "application/json", bytes.NewBuffer(jsonBody))
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 	defer resp.Body.Close()
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
-	fmt.Println(string(body))
+	taskResp := &CreateTaskResponse{}
 
-	taskResp := CreateTaskResponse{}
-	json.Unmarshal(body, &taskResp)
+	err = json.Unmarshal(body, taskResp)
+	if err != nil {
+		return nil, err
+	}
 
-	return taskResp
+	return taskResp, nil
 }
 
-func getTaskResult(taskId string) ResultTaskResponse {
+func getTaskResult(taskId string) (*ResultTaskResponse, error) {
 	task := GetTaskResult{TaskId: taskId}
 
-	jsonBody, _ := json.Marshal(task)
+	jsonBody, err := json.Marshal(task)
+	if err != nil {
+		return nil, err
+	}
 
-	resp, _ := http.Post("https://salamoonder.com/api/getTaskResult", "application/json", bytes.NewBuffer(jsonBody))
+	resp, err := http.Post("https://salamoonder.com/api/getTaskResult", "application/json", bytes.NewBuffer(jsonBody))
+	if err != nil {
+		return nil, err
+	}
+
 	defer resp.Body.Close()
 
-	body, _ := io.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
 
-	taskResponse := ResultTaskResponse{}
+	taskResponse := &ResultTaskResponse{}
 
-	json.Unmarshal(body, &taskResponse)
+	err = json.Unmarshal(body, &taskResponse)
+	if err != nil {
+		return nil, err
+	}
 
-	return taskResponse
+	return taskResponse, nil
 }
 
-func getIntegrityOption(taskResponse ResultTaskResponse) {
+func getIntegrityOption(taskResponse *ResultTaskResponse) error {
 	client := &http.Client{}
 
 	req, err := http.NewRequest("OPTIONS", "https://passport.twitch.tv/integrity", nil)
 	if err != nil {
-		log.Fatal("Error creating request:", err)
+		return err
 	}
 
 	req.Header.Set("User-Agent", taskResponse.Solution["user-agent"])
@@ -286,22 +342,21 @@ func getIntegrityOption(taskResponse ResultTaskResponse) {
 	req.Header.Set("Sec-Fetch-Mode", "cors")
 	req.Header.Set("Sec-Fetch-Site", "same-site")
 
-	// Send the request
 	resp, err := client.Do(req)
 	if err != nil {
-		log.Fatal("Error sending request:", err)
+		return err
 	}
 
 	defer resp.Body.Close()
-
-	// Print the response status code
-	fmt.Println("Response Status:", resp.Status)
 }
 
-func integrityGetToken(taskResponse ResultTaskResponse, cookies map[string]string) Token {
+func integrityGetToken(taskResponse *ResultTaskResponse, cookies map[string]string) (*Token, error) {
 	client := &http.Client{}
 
-	req, _ := http.NewRequest("POST", "https://passport.twitch.tv/integrity", nil)
+	req, err := http.NewRequest("POST", "https://passport.twitch.tv/integrity", nil)
+	if err != nil {
+		return nil, err
+	}
 
 	req.Header.Set("User-Agent", taskResponse.Solution["user-agent"])
 	req.Header.Set("Accept", "*/*")
@@ -320,7 +375,7 @@ func integrityGetToken(taskResponse ResultTaskResponse, cookies map[string]strin
 
 	resp, err := client.Do(req)
 	if err != nil {
-		log.Fatal("Error making request:", err)
+		return nil, err
 	}
 	defer resp.Body.Close()
 
@@ -329,12 +384,18 @@ func integrityGetToken(taskResponse ResultTaskResponse, cookies map[string]strin
 		cookies[strings.Split(cookie, "=")[0]] = strings.Split(cookie, "=")[1]
 	}
 
-	body, _ := io.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
 
-	token := Token{}
-	json.Unmarshal(body, &token)
+	token := &Token{}
+	err = json.Unmarshal(body, token)
+	if err != nil {
+		return nil, err
+	}
 
-	return token
+	return token, nil
 }
 
 func registerFinal(cookies map[string]string, postParams RandomRegisterData, userAgent string) (*AccountRegisterResponse, error) {
@@ -345,9 +406,15 @@ func registerFinal(cookies map[string]string, postParams RandomRegisterData, use
 
 	client := &http.Client{}
 
-	jsonBody, _ := json.Marshal(postParams)
+	jsonBody, err := json.Marshal(postParams)
+	if err != nil {
+		return nil, err
+	}
 
-	req, _ := http.NewRequest("POST", "https://passport.twitch.tv/protected_register", bytes.NewBuffer(jsonBody))
+	req, err := http.NewRequest("POST", "https://passport.twitch.tv/protected_register", bytes.NewBuffer(jsonBody))
+	if err != nil {
+		return nil, err
+	}
 
 	req.Header.Set("User-Agent", userAgent)
 	req.Header.Set("Accept", "*/*")
@@ -363,34 +430,42 @@ func registerFinal(cookies map[string]string, postParams RandomRegisterData, use
 	req.Header.Set("Sec-Fetch-Mode", "cors")
 	req.Header.Set("Sec-Fetch-Site", "same-site")
 
-	resp, _ := client.Do(req)
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
 
-	body, _ := io.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
 
 	if resp.StatusCode == 200 {
 		registerResponse := &AccountRegisterResponse{}
-		json.Unmarshal(body, registerResponse)
+		err = json.Unmarshal(body, registerResponse)
+		if err != nil {
+			return nil, err
+		}
 
 		return registerResponse, nil
 	} else {
 		return nil, errors.New(string(body))
 	}
-
 }
 
-func getTrashMailSession() (*MailnatorData, err) {
+func getTrashMailSession() (*MailnatorData, error) {
 	var sess GoGmailnator.Session
 
 	// session will expire after a few hours
 	err := sess.Init(nil)
 	if err != nil {
-		nil, err
+		return nil, err
 	}
 
 	// calling sess.GenerateEmailAddress or sess.RetrieveMail with a dead session will cause an error
 	isAlive, err := sess.IsAlive()
 	if err != nil {
-		nil, err
+		return nil, err
 	}
 
 	if isAlive {
@@ -402,7 +477,7 @@ func getTrashMailSession() (*MailnatorData, err) {
 
 	emailAddress, err := sess.GenerateEmailAddress()
 	if err != nil {
-		nil, err
+		return nil, err
 	}
 
 	fmt.Println("Email address is " + emailAddress + ".")
@@ -418,7 +493,7 @@ func getTrashMailSession() (*MailnatorData, err) {
 func getVerificationCode(mailData *MailnatorData) (string, error) {
 	emails, err := mailData.Session.RetrieveMail(mailData.Email)
 	if err != nil {
-		panic(err)
+		return "", err
 	}
 
 	var verificationCode string
@@ -498,7 +573,10 @@ func publicIntegrityGetToken(XDeviceId, ClientRequestId, ClientSessionId, Client
 	}
 
 	tokenReturn := Token{}
-	json.Unmarshal(body, &tokenReturn)
+	err = json.Unmarshal(body, &tokenReturn)
+	if err != nil {
+		return nil, err
+	}
 
 	publicIntegrityData := &PublicIntegrityData{
 		Cookies: cookiesReturn,
@@ -546,13 +624,13 @@ func verifyEmail(XDeviceId, ClientVersion, ClientSessionId, accessToken, ClientI
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		return nil, fmt.Errorf("error sending request: %v", err)
+		return nil, err
 	}
 	defer resp.Body.Close()
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return nil, fmt.Errorf("error reading response body: %v", err)
+		return nil, err
 	}
 
 	if resp.StatusCode != http.StatusOK {
@@ -561,18 +639,18 @@ func verifyEmail(XDeviceId, ClientVersion, ClientSessionId, accessToken, ClientI
 
 	verificationResponse := &VerificationCodeResponse{}
 	if err := json.Unmarshal(body, &verificationResponse); err != nil {
-		return nil, fmt.Errorf("error parsing response JSON: %v", err)
+		return nil, err
 	}
 
 	return verificationResponse, nil
 }
 
-func saveAccountData(r RandomRegisterData, userId string, accesToken string) {
+func saveAccountData(r RandomRegisterData, userId string, accesToken string) error {
 	// Check if the file exists
 	if _, err := os.Stat(outputFile); os.IsNotExist(err) {
 		// If the file doesn't exist, create an empty file
 		if err := os.WriteFile(outputFile, []byte(""), 0644); err != nil {
-			panic(err)
+			return err
 		}
 	}
 
@@ -580,12 +658,12 @@ func saveAccountData(r RandomRegisterData, userId string, accesToken string) {
 
 	file, err := os.OpenFile(outputFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
-		panic(err)
+		return err
 	}
 	defer file.Close()
 
 	// Write data to the file
 	if _, err := file.Write([]byte(dataAll)); err != nil {
-		panic(err)
+		return err
 	}
 }
