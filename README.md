@@ -1,5 +1,5 @@
 <h4 align="center">
-    Working as 07 may 2024 !
+    Working as 09 may 2024 !
   </h4>
   
   <h1 align="center">
@@ -57,6 +57,9 @@
   
   ## 💭・ChangeLog
   ```diff
+  v0.0.2 ⋮ 07 may 2024
+  + Code cleanup + exceptions handling
+
   v0.0.1 ⋮ 07 may 2024
   + Added Main Script (creating accounts + email verification)
   ```
