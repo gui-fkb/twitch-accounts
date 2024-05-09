@@ -348,6 +348,8 @@ func getIntegrityOption(taskResponse *ResultTaskResponse) error {
 	}
 
 	defer resp.Body.Close()
+
+	return nil
 }
 
 func integrityGetToken(taskResponse *ResultTaskResponse, cookies map[string]string) (*Token, error) {
@@ -666,4 +668,6 @@ func saveAccountData(r RandomRegisterData, userId string, accesToken string) err
 	if _, err := file.Write([]byte(dataAll)); err != nil {
 		return err
 	}
+
+	return nil
 }
