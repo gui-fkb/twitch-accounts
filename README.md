@@ -29,7 +29,7 @@
   ```sh-session
   > Clone this repository
   > Create an account on https://salamoonder.com/ then add some credits and set up Captcha Api Key on your config.go file
-  > Make sure you have Golang installed on your machine, then run the following command in the project root: go run main.go 
+  > Make sure you have Golang installed on your machine, then run the following command in the project root: 'go run .' or 'go run main.go structs.go utils.go config.go' (without the single quotes)
   ```
   
   ## 🎉・Next Steps/Enhancements
