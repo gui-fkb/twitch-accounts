@@ -378,31 +378,31 @@ func registerFinal(cookies map[string]string, postParams RandomRegisterData, use
 
 }
 
-func getTrashMailSession() *MailnatorData {
+func getTrashMailSession() (*MailnatorData, err) {
 	var sess GoGmailnator.Session
 
 	// session will expire after a few hours
 	err := sess.Init(nil)
 	if err != nil {
-		panic(err)
+		nil, err
 	}
 
 	// calling sess.GenerateEmailAddress or sess.RetrieveMail with a dead session will cause an error
 	isAlive, err := sess.IsAlive()
 	if err != nil {
-		panic(err)
+		nil, err
 	}
 
 	if isAlive {
 		fmt.Println("Session is alive.")
 	} else {
 		fmt.Println("Session is dead.")
-		return nil
+		return nil, err
 	}
 
 	emailAddress, err := sess.GenerateEmailAddress()
 	if err != nil {
-		panic(err)
+		nil, err
 	}
 
 	fmt.Println("Email address is " + emailAddress + ".")
@@ -412,18 +412,7 @@ func getTrashMailSession() *MailnatorData {
 		Email:   emailAddress,
 	}
 
-	return mailData
-
-	/*
-		emails, err := sess.RetrieveMail(emailAddress)
-		if err != nil {
-			panic(err)
-		}
-
-		for _, email := range emails {
-			fmt.Printf("From: %s, Subject: %s, Time: %s\n", email.From, email.Subject, email.Time)
-		}
-	*/
+	return mailData, nil
 }
 
 func getVerificationCode(mailData *MailnatorData) (string, error) {
