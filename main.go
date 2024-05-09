@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -37,7 +38,7 @@ func createNewAccount() {
 
 	trashMailSession, err := getTrashMailSession()
 	if err != nil {
-		fmt.Println(err, "/n account creation exited")
+		fmt.Println(err, "\n account creation exited")
 		return
 	}
 
@@ -48,27 +49,28 @@ func createNewAccount() {
 	fmt.Println("Getting twitch cookies.")
 	cookies, err := getTwitchCookies()
 	if err != nil {
-		fmt.Println(err, "/n account creation exited")
+		fmt.Println(err, "\n account creation exited")
 		return
 	}
 
 	fmt.Println("Getting kasada code")
 	taskResponse, err := kasadaResolver()
 	if err != nil {
-		fmt.Println(err, "/n account creation exited")
+		fmt.Println(err, "\n account creation exited")
 		return
 	}
 
 	fmt.Println("Getting local integrity token") // Add proxy later into integrity
 	err = getIntegrityOption(taskResponse)
 	if err != nil {
-		fmt.Println(err, "/n account creation exited")
+		fmt.Println(err, "\n account creation exited")
 		return
 	}
 
 	integrityData, err := integrityGetToken(taskResponse, cookies)
+	fmt.Printf("IntegrityToken: %v", integrityData.Token[:48]+"+"+strconv.FormatInt(int64(len(integrityData.Token)-48), 10)+"... \n")
 	if err != nil {
-		fmt.Println(err, "/n unable to register token - account creation exited")
+		fmt.Println(err, "\n unable to register token - account creation exited")
 		return
 	}
 
@@ -76,7 +78,7 @@ func createNewAccount() {
 	registerPostData.IntegrityToken = integrityData.Token
 	registerData, err := registerFinal(cookies, registerPostData, taskResponse.Solution["user-agent"])
 	if err != nil {
-		fmt.Println(err, "/n error creating account - account creation exited")
+		fmt.Println(err, "\n error creating account - account creation exited")
 		return
 	}
 
@@ -90,14 +92,14 @@ func createNewAccount() {
 	time.Sleep(time.Second * 8) // Sleep for 8 seconds because twitch verification email can have some delay
 	verifyCode, err := getVerificationCode(trashMailSession)
 	if err != nil {
-		fmt.Println(err, "/n error getting verification code - account creation exited")
+		fmt.Println(err, "\n error getting verification code - account creation exited")
 		return
 	}
 
 	fmt.Println("Getting Kasada Code")
 	kasada2, err := kasadaResolver()
 	if err != nil {
-		fmt.Println(err, "/n error getting kasada code - account creation exited")
+		fmt.Println(err, "\n error getting kasada code - account creation exited")
 		return
 	}
 
@@ -108,31 +110,39 @@ func createNewAccount() {
 
 	fmt.Println("Getting public integrity token...")
 	publicIntegrityData, err := publicIntegrityGetToken(xDeviceId, clientRequestId, clientSessionId, clientVersion, kasada2.Solution["x-kpsdk-ct"], kasada2.Solution["x-kpsdk-cd"], accessToken, kasada2.Solution["user-agent"])
+	fmt.Printf("PublicIntegrityToken: %v", publicIntegrityData.Token[:48]+"+"+strconv.FormatInt(int64(len(publicIntegrityData.Token)-48), 10)+"... \n")
 	if err != nil {
-		fmt.Println(err, "/n error getting public integrity token - account creation exited")
+		fmt.Println(err, "\n error getting public integrity token - account creation exited")
 		return
 	}
 
 	fmt.Println("Verifying account email...")
 	verifyEmailResponse, err := verifyEmail(xDeviceId, clientVersion, clientSessionId, accessToken, publicIntegrityData.Token, verifyCode, userId, trashMailSession.Email, kasada2.Solution["user-agent"])
 	if err != nil {
-		fmt.Println(err, "/n error verifying account email - account creation exited")
+		fmt.Println(err, "\n error verifying account email - account creation exited")
 		return
 	}
 
 	if verifyEmailResponse == nil {
-		fmt.Println(err, "/n email verification failed - account creation exited")
+		fmt.Println(err, "\n email verification failed - account creation exited")
 		return
 	}
 
 	if verifyEmailResponse.Data.ValidateVerificationCode.Request.Status == "VERIFIED" {
 		saveAccountData(registerPostData, userId, accessToken)
 		if err != nil {
-			fmt.Println(err, "/n error saving account data - account creation exited")
+			fmt.Println(err, "\n error saving account data - account creation exited")
 			return
 		}
 
 		fmt.Println("Account verified and saved!")
+	} else {
+		fmt.Println("Account WAS NOT NOT VERIFIED")
+		jsonBytes, _ := json.Marshal(verifyEmailResponse)
+
+		fmt.Println("Verify email response: " + string(jsonBytes))
+
+		return
 	}
 
 	fmt.Println("Account is ready!")
