@@ -129,7 +129,7 @@ func createNewAccount() {
 	}
 
 	if verifyEmailResponse.Data.ValidateVerificationCode.Request.Status == "VERIFIED" {
-		saveAccountData(registerPostData, userId, accessToken)
+		err := saveAccountData(registerPostData, userId, accessToken)
 		if err != nil {
 			fmt.Println(err, "\n error saving account data - account creation exited")
 			return
