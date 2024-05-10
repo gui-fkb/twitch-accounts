@@ -254,14 +254,21 @@ func kasadaResolver() (*ResultTaskResponse, error) {
 		return nil, err
 	}
 
-	time.Sleep(time.Second * 2)
+	maxAttemps := 12
+	for i := 0; i < maxAttemps; i++ {
+		time.Sleep(time.Millisecond * 400)
 
-	taskResult, err := getTaskResult(taskResponse.TaskId)
-	if err != nil {
-		return nil, err
+		taskResult, err := getTaskResult(taskResponse.TaskId)
+		if err != nil {
+			return nil, err
+		}
+
+		if taskResult.Status == "ready" {
+			return taskResult, nil
+		}
 	}
 
-	return taskResult, nil
+	return nil, errors.New("kasada task took too long to resolve")
 }
 
 func createKasadaTask() (*CreateTaskResponse, error) {
@@ -484,7 +491,7 @@ func getTrashMailSession() (*MailnatorData, error) {
 		fmt.Println("Session is alive.")
 	} else {
 		fmt.Println("Session is dead.")
-		return nil, err
+		return nil, fmt.Errorf("session is not alive")
 	}
 
 	emailAddress, err := sess.GenerateEmailAddress()
