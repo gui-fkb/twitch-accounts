@@ -36,8 +36,8 @@
   ## 🎉・Next Steps/Enhancements
   
   - Follow bot
-  - Code clean up
-  - ~~Proxy configuration~~
+  - <span style="color: gray;">~~Code clean up~~</span>
+  - <span style="color: gray;">~~Proxy configuration~~</span>
   
   ## 📄・License
   
