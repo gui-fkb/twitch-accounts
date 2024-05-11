@@ -36,7 +36,7 @@
   
   - Follow bot
   - Code clean up
-  - Proxy configuration
+  - ~~Proxy configuration~~
   
   ## 📄・License
   
