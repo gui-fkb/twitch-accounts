@@ -21,8 +21,9 @@
   ✔ Create accounts on TwitchTV
   ✔ Verify account email
   ✔ Captcha Validation
+  ✔ Proxy Support
   ✔ Simple and easy-to-use script
-  
+
   ---
   
   ## ⚙️・How to setup Twitch Accounts?
@@ -66,7 +67,7 @@
     + Improved status logging
 
     v0.0.1 ⋮ 07 may 2024
-    + Added Main Script (creating accounts + email verification)
+    + Added main script (creating accounts + email verification)
    ```
   ---
   
