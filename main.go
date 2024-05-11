@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"crypto/tls"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -166,8 +167,8 @@ func generateRandomID(length int) string {
 	return string(bytes)
 }
 
-func getEmail(username string) string {
-	return fmt.Sprintf("%s@%s", username, config.EmailDomain) // Unused right now
+func getEmail(username string) string { // This function is not being used right now, but it can be useful in the future
+	return fmt.Sprintf("%s@%s", username, config.EmailDomain)
 }
 
 func generateRandomRegisterData(uname string, email string) RandomRegisterData {
@@ -207,13 +208,15 @@ func getTwitchCookies() (map[string]string, error) {
 		fmt.Println("!! There is no proxy configuration found. The requests are going to be handled without any proxy !!")
 	} else {
 		var err error
+		tlsConfig := &tls.Config{InsecureSkipVerify: true}
 		proxyURL, err = url.Parse(config.Proxy)
 		if err != nil {
 			return nil, err
 		}
 
 		httpClient.Transport = &http.Transport{
-			Proxy: http.ProxyURL(proxyURL),
+			TLSClientConfig: tlsConfig,
+			Proxy:           http.ProxyURL(proxyURL),
 		}
 	}
 
@@ -272,6 +275,8 @@ func kasadaResolver() (*ResultTaskResponse, error) {
 }
 
 func createKasadaTask() (*CreateTaskResponse, error) {
+	// There is not the need to use proxy here, because the kasada task is not being blocked by the server
+
 	requestBody := CreateKasadaTask{
 		ApiKey: config.CapSolverKey,
 		Task: Task{
@@ -308,6 +313,7 @@ func createKasadaTask() (*CreateTaskResponse, error) {
 }
 
 func getTaskResult(taskId string) (*ResultTaskResponse, error) {
+	// There is not the need to use proxy here, because the kasada task is not being blocked by the server
 	task := GetTaskResult{TaskId: taskId}
 
 	jsonBody, err := json.Marshal(task)
@@ -339,6 +345,22 @@ func getTaskResult(taskId string) (*ResultTaskResponse, error) {
 
 func getIntegrityOption(taskResponse *ResultTaskResponse) error {
 	client := &http.Client{}
+	var proxyURL *url.URL
+
+	if config.Proxy == "your_proxy" {
+		// Warning, if you are not using proxy, the requests can be blocked
+		fmt.Println("!! There is no proxy configuration found. The requests are going to be handled without any proxy !!")
+	} else {
+		var err error
+		proxyURL, err = url.Parse(config.Proxy)
+		if err != nil {
+			return err
+		}
+
+		client.Transport = &http.Transport{
+			Proxy: http.ProxyURL(proxyURL),
+		}
+	}
 
 	req, err := http.NewRequest("OPTIONS", "https://passport.twitch.tv/integrity", nil)
 	if err != nil {
@@ -371,6 +393,23 @@ func getIntegrityOption(taskResponse *ResultTaskResponse) error {
 
 func integrityGetToken(taskResponse *ResultTaskResponse, cookies map[string]string) (*Token, error) {
 	client := &http.Client{}
+
+	var proxyURL *url.URL
+
+	if config.Proxy == "your_proxy" {
+		// Warning, if you are not using proxy, the requests can be blocked
+		fmt.Println("!! There is no proxy configuration found. The requests are going to be handled without any proxy !!")
+	} else {
+		var err error
+		proxyURL, err = url.Parse(config.Proxy)
+		if err != nil {
+			return nil, err
+		}
+
+		client.Transport = &http.Transport{
+			Proxy: http.ProxyURL(proxyURL),
+		}
+	}
 
 	req, err := http.NewRequest("POST", "https://passport.twitch.tv/integrity", nil)
 	if err != nil {
@@ -424,6 +463,22 @@ func registerFinal(cookies map[string]string, postParams RandomRegisterData, use
 	}
 
 	client := &http.Client{}
+	var proxyURL *url.URL
+
+	if config.Proxy == "your_proxy" {
+		// Warning, if you are not using proxy, the requests can be blocked
+		fmt.Println("!! There is no proxy configuration found. The requests are going to be handled without any proxy !!")
+	} else {
+		var err error
+		proxyURL, err = url.Parse(config.Proxy)
+		if err != nil {
+			return nil, err
+		}
+
+		client.Transport = &http.Transport{
+			Proxy: http.ProxyURL(proxyURL),
+		}
+	}
 
 	jsonBody, err := json.Marshal(postParams)
 	if err != nil {
@@ -475,8 +530,16 @@ func registerFinal(cookies map[string]string, postParams RandomRegisterData, use
 func getTrashMailSession() (*MailnatorData, error) {
 	var sess GoGmailnator.Session
 
+	var proxy *string
+	if config.Proxy == "your_proxy" {
+		proxy = nil
+	} else {
+		tempProxy := strings.Replace(strings.Replace(config.Proxy, "https://", "", -1), "http://", "", -1) // Remove https:// from the proxy, because the GoGmailnator package is hardcoded to use http
+		proxy = &tempProxy
+	}
+
 	// session will expire after a few hours
-	err := sess.Init(nil)
+	err := sess.Init(proxy)
 	if err != nil {
 		return nil, err
 	}
@@ -569,6 +632,22 @@ func publicIntegrityGetToken(XDeviceId, ClientRequestId, ClientSessionId, Client
 	}
 
 	client := &http.Client{}
+	var proxyURL *url.URL
+
+	if config.Proxy == "your_proxy" {
+		fmt.Println("!! There is no proxy configuration found. The requests are going to be handled without any proxy !!")
+	} else {
+		var err error
+		proxyURL, err = url.Parse(config.Proxy)
+		if err != nil {
+			return nil, err
+		}
+
+		client.Transport = &http.Transport{
+			Proxy: http.ProxyURL(proxyURL),
+		}
+	}
+
 	resp, err := client.Do(req)
 	if err != nil {
 		return nil, err
@@ -641,6 +720,22 @@ func verifyEmail(XDeviceId, ClientVersion, ClientSessionId, accessToken, ClientI
 	}
 
 	client := &http.Client{}
+	var proxyURL *url.URL
+
+	if config.Proxy == "your_proxy" {
+		fmt.Println("!! There is no proxy configuration found. The requests are going to be handled without any proxy !!")
+	} else {
+		var err error
+		proxyURL, err = url.Parse(config.Proxy)
+		if err != nil {
+			return nil, err
+		}
+
+		client.Transport = &http.Transport{
+			Proxy: http.ProxyURL(proxyURL),
+		}
+	}
+
 	resp, err := client.Do(req)
 	if err != nil {
 		return nil, err
