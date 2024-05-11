@@ -2,7 +2,6 @@ package main
 
 import (
 	"bytes"
-	"crypto/tls"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -208,15 +207,13 @@ func getTwitchCookies() (map[string]string, error) {
 		fmt.Println("!! There is no proxy configuration found. The requests are going to be handled without any proxy !!")
 	} else {
 		var err error
-		tlsConfig := &tls.Config{InsecureSkipVerify: true}
 		proxyURL, err = url.Parse(config.Proxy)
 		if err != nil {
 			return nil, err
 		}
 
 		httpClient.Transport = &http.Transport{
-			TLSClientConfig: tlsConfig,
-			Proxy:           http.ProxyURL(proxyURL),
+			Proxy: http.ProxyURL(proxyURL),
 		}
 	}
 
