@@ -203,7 +203,8 @@ func getTwitchCookies() (map[string]string, error) {
 	httpClient := &http.Client{}
 	var proxyURL *url.URL
 
-	if config.Proxy == "your_proxy" {
+	if config.Proxy == "your_proxy" || config.Proxy == "" {
+		// Warning, if you are not using proxy, the requests can be blocked
 		fmt.Println("!! There is no proxy configuration found. The requests are going to be handled without any proxy !!")
 	} else {
 		var err error
@@ -344,7 +345,7 @@ func getIntegrityOption(taskResponse *ResultTaskResponse) error {
 	client := &http.Client{}
 	var proxyURL *url.URL
 
-	if config.Proxy == "your_proxy" {
+	if config.Proxy == "your_proxy" || config.Proxy == "" {
 		// Warning, if you are not using proxy, the requests can be blocked
 		fmt.Println("!! There is no proxy configuration found. The requests are going to be handled without any proxy !!")
 	} else {
@@ -393,7 +394,7 @@ func integrityGetToken(taskResponse *ResultTaskResponse, cookies map[string]stri
 
 	var proxyURL *url.URL
 
-	if config.Proxy == "your_proxy" {
+	if config.Proxy == "your_proxy" || config.Proxy == "" {
 		// Warning, if you are not using proxy, the requests can be blocked
 		fmt.Println("!! There is no proxy configuration found. The requests are going to be handled without any proxy !!")
 	} else {
@@ -462,7 +463,7 @@ func registerFinal(cookies map[string]string, postParams RandomRegisterData, use
 	client := &http.Client{}
 	var proxyURL *url.URL
 
-	if config.Proxy == "your_proxy" {
+	if config.Proxy == "your_proxy" || config.Proxy == "" {
 		// Warning, if you are not using proxy, the requests can be blocked
 		fmt.Println("!! There is no proxy configuration found. The requests are going to be handled without any proxy !!")
 	} else {
@@ -528,7 +529,9 @@ func getTrashMailSession() (*MailnatorData, error) {
 	var sess GoGmailnator.Session
 
 	var proxy *string
-	if config.Proxy == "your_proxy" {
+	if config.Proxy == "your_proxy" || config.Proxy == "" {
+		// Warning, if you are not using proxy, the requests can be blocked
+		fmt.Println("!! There is no proxy configuration found. The requests are going to be handled without any proxy !!")
 		proxy = nil
 	} else {
 		tempProxy := strings.Replace(strings.Replace(config.Proxy, "https://", "", -1), "http://", "", -1) // Remove https:// from the proxy, because the GoGmailnator package is hardcoded to use http
@@ -631,7 +634,8 @@ func publicIntegrityGetToken(XDeviceId, ClientRequestId, ClientSessionId, Client
 	client := &http.Client{}
 	var proxyURL *url.URL
 
-	if config.Proxy == "your_proxy" {
+	if config.Proxy == "your_proxy" || config.Proxy == "" {
+		// Warning, if you are not using proxy, the requests can be blocked
 		fmt.Println("!! There is no proxy configuration found. The requests are going to be handled without any proxy !!")
 	} else {
 		var err error
@@ -719,7 +723,8 @@ func verifyEmail(XDeviceId, ClientVersion, ClientSessionId, accessToken, ClientI
 	client := &http.Client{}
 	var proxyURL *url.URL
 
-	if config.Proxy == "your_proxy" {
+	if config.Proxy == "your_proxy" || config.Proxy == "" {
+		// Warning, if you are not using proxy, the requests can be blocked
 		fmt.Println("!! There is no proxy configuration found. The requests are going to be handled without any proxy !!")
 	} else {
 		var err error
