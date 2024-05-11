@@ -1,5 +1,5 @@
 <h4 align="center">
-    Working as 09 may 2024 !
+    Working as 11 may 2024 !
   </h4>
   
   <h1 align="center">
@@ -57,13 +57,17 @@
   
   ## 💭・ChangeLog
   ```diff
-  v0.0.2 ⋮ 09 may 2024
-  + Code cleanup + exceptions handling
+    v0.0.3 ⋮ 11 may 2024
+    + Added proxy support to all requests
+    
+    v0.0.2 ⋮ 09 may 2024
+    + Code cleanup
+    + Enhanced error handling
+    + Improved status logging
 
-  v0.0.1 ⋮ 07 may 2024
-  + Added Main Script (creating accounts + email verification)
-  ```
-  
+    v0.0.1 ⋮ 07 may 2024
+    + Added Main Script (creating accounts + email verification)
+   ```
   ---
   
   <p>
