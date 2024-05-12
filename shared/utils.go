@@ -9,7 +9,7 @@ import (
 	"github.com/ox-y/GoGmailnator"
 )
 
-func fastEmailTest() {
+func FastEmailTest() {
 	var sess GoGmailnator.Session
 
 	err := sess.Init(nil)
@@ -46,7 +46,7 @@ func fastEmailTest() {
 	}
 }
 
-func clearScreen() {
+func ClearScreen() {
 	// Clear the screen using platform-specific commands
 
 	switch runtime.GOOS {
