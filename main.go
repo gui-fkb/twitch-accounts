@@ -21,6 +21,8 @@ import (
 )
 
 var outputFile string = "./results/accounts.txt"
+var userPassFile string = "./results/userpass.txt"
+var tokensFile string = "./results/tokens.txt"
 
 func main() {
 	fmt.Println("twitch-accounts by xBadApple -  https://github.com/xBadApple")
@@ -60,7 +62,7 @@ func createNewAccount() {
 		return
 	}
 
-	fmt.Println("Getting local integrity token") // Add proxy later into integrity
+	fmt.Println("Getting local integrity token")
 	err = getIntegrityOption(taskResponse)
 	if err != nil {
 		fmt.Println(err, "\n account creation exited")
@@ -96,36 +98,44 @@ func createNewAccount() {
 		return
 	}
 
-	fmt.Println("Getting Kasada Code")
-	kasada2, err := kasadaResolver()
-	if err != nil {
-		fmt.Println(err, "\n error getting kasada code - account creation exited")
-		return
-	}
+	verifyEmailResponse := &VerificationCodeResponse{}
 
-	clientSessionId := generateRandomID(16)
-	xDeviceId := cookies["unique_id"]
-	clientVersion := "3040e141-5964-4d72-b67d-e73c1cf355b5"
-	clientRequestId := generateRandomID(32)
+	for i := 0; i < 4; i++ {
+		fmt.Println("Getting Kasada Code attempt", i+1, " of ", 4)
+		kasada2, err := kasadaResolver()
+		if err != nil {
+			fmt.Println(err, "\n error getting kasada code - account creation exited")
+			continue
+		}
 
-	fmt.Println("Getting public integrity token...")
-	publicIntegrityData, err := publicIntegrityGetToken(xDeviceId, clientRequestId, clientSessionId, clientVersion, kasada2.Solution["x-kpsdk-ct"], kasada2.Solution["x-kpsdk-cd"], accessToken, kasada2.Solution["user-agent"])
-	fmt.Printf("PublicIntegrityToken: %v", publicIntegrityData.Token[:48]+"+"+strconv.FormatInt(int64(len(publicIntegrityData.Token)-48), 10)+"... \n")
-	if err != nil {
-		fmt.Println(err, "\n error getting public integrity token - account creation exited")
-		return
-	}
+		clientSessionId := generateRandomID(16)
+		xDeviceId := cookies["unique_id"]
+		clientVersion := "3040e141-5964-4d72-b67d-e73c1cf355b5"
+		clientRequestId := generateRandomID(32)
 
-	fmt.Println("Verifying account email...")
-	verifyEmailResponse, err := verifyEmail(xDeviceId, clientVersion, clientSessionId, accessToken, publicIntegrityData.Token, verifyCode, userId, trashMailSession.Email, kasada2.Solution["user-agent"])
-	if err != nil {
-		fmt.Println(err, "\n error verifying account email - account creation exited")
-		return
-	}
+		fmt.Println("Getting public integrity token...")
+		publicIntegrityData, err := publicIntegrityGetToken(xDeviceId, clientRequestId, clientSessionId, clientVersion, kasada2.Solution["x-kpsdk-ct"], kasada2.Solution["x-kpsdk-cd"], accessToken, kasada2.Solution["user-agent"])
+		fmt.Printf("PublicIntegrityToken: %v", publicIntegrityData.Token[:48]+"+"+strconv.FormatInt(int64(len(publicIntegrityData.Token)-48), 10)+"... \n")
+		if err != nil {
+			fmt.Println(err, "\n error getting public integrity token - account creation exited")
+			continue
+		}
 
-	if verifyEmailResponse == nil {
-		fmt.Println(err, "\n email verification failed - account creation exited")
-		return
+		fmt.Println("Verifying account email...")
+		verifyEmailResponse, err = verifyEmail(xDeviceId, clientVersion, clientSessionId, accessToken, publicIntegrityData.Token, verifyCode, userId, trashMailSession.Email, kasada2.Solution["user-agent"])
+		if err != nil {
+			fmt.Println(err, "\n error verifying account email - account creation exited")
+			continue
+		}
+
+		if verifyEmailResponse == nil {
+			fmt.Println(err, "\n email verification failed - account creation exited")
+			continue
+		}
+
+		if verifyEmailResponse.Data.ValidateVerificationCode.Request.Status == "VERIFIED" {
+			break
+		}
 	}
 
 	if verifyEmailResponse.Data.ValidateVerificationCode.Request.Status == "VERIFIED" {
@@ -762,6 +772,8 @@ func verifyEmail(XDeviceId, ClientVersion, ClientSessionId, accessToken, ClientI
 }
 
 func saveAccountData(r RandomRegisterData, userId string, accesToken string) error {
+	// 1. Save Full data
+
 	// Check if the file exists
 	if _, err := os.Stat(outputFile); os.IsNotExist(err) {
 		// If the file doesn't exist, create an empty file
@@ -769,17 +781,46 @@ func saveAccountData(r RandomRegisterData, userId string, accesToken string) err
 			return err
 		}
 	}
-
-	dataAll := r.Username + " " + r.Password + " " + r.Email + " " + userId + " " + accesToken + "\n"
-
+	dataAll := r.Username + " " + r.Password + " " + r.Email + " " + userId + " " + accesToken + " \n"
 	file, err := os.OpenFile(outputFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
 		return err
 	}
 	defer file.Close()
-
 	// Write data to the file
 	if _, err := file.Write([]byte(dataAll)); err != nil {
+		return err
+	}
+
+	// 2. Save only the username and password
+	if _, err := os.Stat(userPassFile); os.IsNotExist(err) {
+		if err := os.WriteFile(userPassFile, []byte(""), 0644); err != nil {
+			return err
+		}
+	}
+	userPass := r.Username + " " + r.Password + " \n"
+	file, err = os.OpenFile(userPassFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+	if _, err := file.Write([]byte(userPass)); err != nil {
+		return err
+	}
+
+	// 3. Save only the tokens (oauth acces token)
+	if _, err := os.Stat(tokensFile); os.IsNotExist(err) {
+		if err := os.WriteFile(tokensFile, []byte(""), 0644); err != nil {
+			return err
+		}
+	}
+	token := accesToken + " \n"
+	file, err = os.OpenFile(tokensFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+	if _, err := file.Write([]byte(token)); err != nil {
 		return err
 	}
 
