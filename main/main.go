@@ -15,6 +15,8 @@ import (
 	"strings"
 	"time"
 
+	"twitch-accounts/shared"
+
 	"github.com/goombaio/namegenerator"
 	"github.com/ox-y/GoGmailnator"
 	"github.com/sethvargo/go-password/password"
@@ -28,13 +30,12 @@ func main() {
 	fmt.Println("twitch-accounts by xBadApple -  https://github.com/xBadApple")
 	//fastEmailTest() // Uncomment this line if you want to test the trash email in a fast way, dont forget to enable breakpoints inside the function
 
-	if config.CapSolverKey == "your_captcha_key" {
-		log.Fatal("It looks like your captcha solver API token isn't configured yet. Change it in the config.go file and run again.")
+	if shared.Config.CapSolverKey == "your_captcha_key" {
+		log.Fatal("It looks like your captcha solver API token isn't configured yet. Change it in the shared.Config.go file and run again.")
 	}
 
 	createNewAccount()
 }
-
 func createNewAccount() {
 	randomUsername := getRandomUsername() + "_" + generateRandomID(3)
 
@@ -98,7 +99,7 @@ func createNewAccount() {
 		return
 	}
 
-	verifyEmailResponse := &VerificationCodeResponse{}
+	verifyEmailResponse := &shared.VerificationCodeResponse{}
 
 	for i := 0; i < 4; i++ {
 		fmt.Println("Getting Kasada Code attempt", i+1, " of ", 4)
@@ -177,16 +178,16 @@ func generateRandomID(length int) string {
 }
 
 func getEmail(username string) string { // This function is not being used right now, but it can be useful in the future
-	return fmt.Sprintf("%s@%s", username, config.EmailDomain)
+	return fmt.Sprintf("%s@%s", username, shared.Config.EmailDomain)
 }
 
-func generateRandomRegisterData(uname string, email string) RandomRegisterData {
-	return RandomRegisterData{
+func generateRandomRegisterData(uname string, email string) shared.RandomRegisterData {
+	return shared.RandomRegisterData{
 		Username:       uname,
 		Password:       getRandomPassword(),
 		Birthday:       generateRandomBirthday(),
 		Email:          email,
-		ClientID:       config.TwitchClientID,
+		ClientID:       shared.Config.TwitchClientID,
 		IntegrityToken: "",
 	}
 }
@@ -200,8 +201,8 @@ func getRandomPassword() string {
 	return res
 }
 
-func generateRandomBirthday() Birthday {
-	return Birthday{
+func generateRandomBirthday() shared.Birthday {
+	return shared.Birthday{
 		Day:   rand.Intn(30) + 1,
 		Month: rand.Intn(12) + 1,
 		Year:  rand.Intn(30) + 1970,
@@ -213,12 +214,12 @@ func getTwitchCookies() (map[string]string, error) {
 	httpClient := &http.Client{}
 	var proxyURL *url.URL
 
-	if config.Proxy == "your_proxy" || config.Proxy == "" {
+	if shared.Config.Proxy == "your_proxy" || shared.Config.Proxy == "" {
 		// Warning, if you are not using proxy, the requests can be blocked
 		fmt.Println("!! There is no proxy configuration found. The requests are going to be handled without any proxy !!")
 	} else {
 		var err error
-		proxyURL, err = url.Parse(config.Proxy)
+		proxyURL, err = url.Parse(shared.Config.Proxy)
 		if err != nil {
 			return nil, err
 		}
@@ -259,7 +260,7 @@ func getTwitchCookies() (map[string]string, error) {
 	return cookiesMap, nil
 }
 
-func kasadaResolver() (*ResultTaskResponse, error) {
+func kasadaResolver() (*shared.ResultTaskResponse, error) {
 	taskResponse, err := createKasadaTask()
 	if err != nil {
 		return nil, err
@@ -282,12 +283,12 @@ func kasadaResolver() (*ResultTaskResponse, error) {
 	return nil, errors.New("kasada task took too long to resolve")
 }
 
-func createKasadaTask() (*CreateTaskResponse, error) {
+func createKasadaTask() (*shared.CreateTaskResponse, error) {
 	// There is not the need to use proxy here, because the kasada task is not being blocked by the server
 
-	requestBody := CreateKasadaTask{
-		ApiKey: config.CapSolverKey,
-		Task: Task{
+	requestBody := shared.CreateKasadaTask{
+		ApiKey: shared.Config.CapSolverKey,
+		Task: shared.Task{
 			Type:   "KasadaCaptchaSolver",
 			Pjs:    "https://k.twitchcdn.net/149e9513-01fa-4fb0-aad4-566afd725d1b/2d206a39-8ed7-437e-a3be-862e0f06eea3/p.js",
 			CdOnly: false,
@@ -310,7 +311,7 @@ func createKasadaTask() (*CreateTaskResponse, error) {
 		return nil, err
 	}
 
-	taskResp := &CreateTaskResponse{}
+	taskResp := &shared.CreateTaskResponse{}
 
 	err = json.Unmarshal(body, taskResp)
 	if err != nil {
@@ -320,9 +321,9 @@ func createKasadaTask() (*CreateTaskResponse, error) {
 	return taskResp, nil
 }
 
-func getTaskResult(taskId string) (*ResultTaskResponse, error) {
+func getTaskResult(taskId string) (*shared.ResultTaskResponse, error) {
 	// There is not the need to use proxy here, because the kasada task is not being blocked by the server
-	task := GetTaskResult{TaskId: taskId}
+	task := shared.GetTaskResult{TaskId: taskId}
 
 	jsonBody, err := json.Marshal(task)
 	if err != nil {
@@ -341,7 +342,7 @@ func getTaskResult(taskId string) (*ResultTaskResponse, error) {
 		return nil, err
 	}
 
-	taskResponse := &ResultTaskResponse{}
+	taskResponse := &shared.ResultTaskResponse{}
 
 	err = json.Unmarshal(body, &taskResponse)
 	if err != nil {
@@ -351,16 +352,16 @@ func getTaskResult(taskId string) (*ResultTaskResponse, error) {
 	return taskResponse, nil
 }
 
-func getIntegrityOption(taskResponse *ResultTaskResponse) error {
+func getIntegrityOption(taskResponse *shared.ResultTaskResponse) error {
 	client := &http.Client{}
 	var proxyURL *url.URL
 
-	if config.Proxy == "your_proxy" || config.Proxy == "" {
+	if shared.Config.Proxy == "your_proxy" || shared.Config.Proxy == "" {
 		// Warning, if you are not using proxy, the requests can be blocked
 		fmt.Println("!! There is no proxy configuration found. The requests are going to be handled without any proxy !!")
 	} else {
 		var err error
-		proxyURL, err = url.Parse(config.Proxy)
+		proxyURL, err = url.Parse(shared.Config.Proxy)
 		if err != nil {
 			return err
 		}
@@ -399,17 +400,17 @@ func getIntegrityOption(taskResponse *ResultTaskResponse) error {
 	return nil
 }
 
-func integrityGetToken(taskResponse *ResultTaskResponse, cookies map[string]string) (*Token, error) {
+func integrityGetToken(taskResponse *shared.ResultTaskResponse, cookies map[string]string) (*shared.Token, error) {
 	client := &http.Client{}
 
 	var proxyURL *url.URL
 
-	if config.Proxy == "your_proxy" || config.Proxy == "" {
+	if shared.Config.Proxy == "your_proxy" || shared.Config.Proxy == "" {
 		// Warning, if you are not using proxy, the requests can be blocked
 		fmt.Println("!! There is no proxy configuration found. The requests are going to be handled without any proxy !!")
 	} else {
 		var err error
-		proxyURL, err = url.Parse(config.Proxy)
+		proxyURL, err = url.Parse(shared.Config.Proxy)
 		if err != nil {
 			return nil, err
 		}
@@ -455,7 +456,7 @@ func integrityGetToken(taskResponse *ResultTaskResponse, cookies map[string]stri
 		return nil, err
 	}
 
-	token := &Token{}
+	token := &shared.Token{}
 	err = json.Unmarshal(body, token)
 	if err != nil {
 		return nil, err
@@ -464,7 +465,7 @@ func integrityGetToken(taskResponse *ResultTaskResponse, cookies map[string]stri
 	return token, nil
 }
 
-func registerFinal(cookies map[string]string, postParams RandomRegisterData, userAgent string) (*AccountRegisterResponse, error) {
+func registerFinal(cookies map[string]string, postParams shared.RandomRegisterData, userAgent string) (*shared.AccountRegisterResponse, error) {
 	var cookiesString string
 	for key, value := range cookies {
 		cookiesString += key + "=" + value + "; "
@@ -473,12 +474,12 @@ func registerFinal(cookies map[string]string, postParams RandomRegisterData, use
 	client := &http.Client{}
 	var proxyURL *url.URL
 
-	if config.Proxy == "your_proxy" || config.Proxy == "" {
+	if shared.Config.Proxy == "your_proxy" || shared.Config.Proxy == "" {
 		// Warning, if you are not using proxy, the requests can be blocked
 		fmt.Println("!! There is no proxy configuration found. The requests are going to be handled without any proxy !!")
 	} else {
 		var err error
-		proxyURL, err = url.Parse(config.Proxy)
+		proxyURL, err = url.Parse(shared.Config.Proxy)
 		if err != nil {
 			return nil, err
 		}
@@ -523,7 +524,7 @@ func registerFinal(cookies map[string]string, postParams RandomRegisterData, use
 	}
 
 	if resp.StatusCode == 200 {
-		registerResponse := &AccountRegisterResponse{}
+		registerResponse := &shared.AccountRegisterResponse{}
 		err = json.Unmarshal(body, registerResponse)
 		if err != nil {
 			return nil, err
@@ -535,16 +536,16 @@ func registerFinal(cookies map[string]string, postParams RandomRegisterData, use
 	}
 }
 
-func getTrashMailSession() (*MailnatorData, error) {
+func getTrashMailSession() (*shared.MailnatorData, error) {
 	var sess GoGmailnator.Session
 
 	var proxy *string
-	if config.Proxy == "your_proxy" || config.Proxy == "" {
+	if shared.Config.Proxy == "your_proxy" || shared.Config.Proxy == "" {
 		// Warning, if you are not using proxy, the requests can be blocked
 		fmt.Println("!! There is no proxy configuration found. The requests are going to be handled without any proxy !!")
 		proxy = nil
 	} else {
-		tempProxy := strings.Replace(strings.Replace(config.Proxy, "https://", "", -1), "http://", "", -1) // Remove https:// from the proxy, because the GoGmailnator package is hardcoded to use http
+		tempProxy := strings.Replace(strings.Replace(shared.Config.Proxy, "https://", "", -1), "http://", "", -1) // Remove https:// from the proxy, because the GoGmailnator package is hardcoded to use http
 		proxy = &tempProxy
 	}
 
@@ -574,7 +575,7 @@ func getTrashMailSession() (*MailnatorData, error) {
 
 	fmt.Println("Email address is " + emailAddress + ".")
 
-	mailData := &MailnatorData{
+	mailData := &shared.MailnatorData{
 		Session: sess,
 		Email:   emailAddress,
 	}
@@ -582,7 +583,7 @@ func getTrashMailSession() (*MailnatorData, error) {
 	return mailData, nil
 }
 
-func getVerificationCode(mailData *MailnatorData) (string, error) {
+func getVerificationCode(mailData *shared.MailnatorData) (string, error) {
 	emails, err := mailData.Session.RetrieveMail(mailData.Email)
 	if err != nil {
 		return "", err
@@ -606,7 +607,7 @@ func getVerificationCode(mailData *MailnatorData) (string, error) {
 	return verificationCode, nil
 }
 
-func publicIntegrityGetToken(XDeviceId, ClientRequestId, ClientSessionId, ClientVersion, kpsdkct, kpsdkcd, accesstoken, current_useragent string) (publicIntegrity *PublicIntegrityData, err error) {
+func publicIntegrityGetToken(XDeviceId, ClientRequestId, ClientSessionId, ClientVersion, kpsdkct, kpsdkcd, accesstoken, current_useragent string) (publicIntegrity *shared.PublicIntegrityData, err error) {
 	requestBody := []byte("{}")
 
 	headers := map[string]string{
@@ -616,7 +617,7 @@ func publicIntegrityGetToken(XDeviceId, ClientRequestId, ClientSessionId, Client
 		"Accept-Encoding":   "identity",
 		"Authorization":     "OAuth " + accesstoken,
 		"Referer":           "https://www.twitch.tv/",
-		"Client-Id":         config.TwitchClientID,
+		"Client-Id":         shared.Config.TwitchClientID,
 		"X-Device-Id":       XDeviceId,
 		"Client-Request-Id": ClientRequestId,
 		"Client-Session-Id": ClientSessionId,
@@ -644,12 +645,12 @@ func publicIntegrityGetToken(XDeviceId, ClientRequestId, ClientSessionId, Client
 	client := &http.Client{}
 	var proxyURL *url.URL
 
-	if config.Proxy == "your_proxy" || config.Proxy == "" {
+	if shared.Config.Proxy == "your_proxy" || shared.Config.Proxy == "" {
 		// Warning, if you are not using proxy, the requests can be blocked
 		fmt.Println("!! There is no proxy configuration found. The requests are going to be handled without any proxy !!")
 	} else {
 		var err error
-		proxyURL, err = url.Parse(config.Proxy)
+		proxyURL, err = url.Parse(shared.Config.Proxy)
 		if err != nil {
 			return nil, err
 		}
@@ -681,13 +682,13 @@ func publicIntegrityGetToken(XDeviceId, ClientRequestId, ClientSessionId, Client
 		cookiesReturn += cookiesReturn + p1 + "; "
 	}
 
-	tokenReturn := Token{}
+	tokenReturn := shared.Token{}
 	err = json.Unmarshal(body, &tokenReturn)
 	if err != nil {
 		return nil, err
 	}
 
-	publicIntegrityData := &PublicIntegrityData{
+	publicIntegrityData := &shared.PublicIntegrityData{
 		Cookies: cookiesReturn,
 		Token:   tokenReturn.Token,
 	}
@@ -695,7 +696,7 @@ func publicIntegrityGetToken(XDeviceId, ClientRequestId, ClientSessionId, Client
 	return publicIntegrityData, nil
 }
 
-func verifyEmail(XDeviceId, ClientVersion, ClientSessionId, accessToken, ClientIntegrity, code, userId, email, current_useragent string) (*VerificationCodeResponse, error) {
+func verifyEmail(XDeviceId, ClientVersion, ClientSessionId, accessToken, ClientIntegrity, code, userId, email, current_useragent string) (*shared.VerificationCodeResponse, error) {
 	query := `{"operationName":"ValidateVerificationCode","variables":{"input":{"code":"` + code + `","key":"` + userId + `","address":"` + email + `"}},"extensions":{"persistedQuery":{"version":1,"sha256Hash":"05eba55c37ee4eff4dae260850dd6703d99cfde8b8ec99bc97a67e584ae9ec31"}}}`
 
 	requestBody := bytes.NewBufferString(query)
@@ -706,7 +707,7 @@ func verifyEmail(XDeviceId, ClientVersion, ClientSessionId, accessToken, ClientI
 		"Accept-Language":  "en-US",
 		"Accept-Encoding":  "identity",
 		"Referer":          "https://www.twitch.tv/",
-		"Client-Id":        config.TwitchClientID,
+		"Client-Id":        shared.Config.TwitchClientID,
 		"X-Device-Id":      XDeviceId,
 		"Client-Version":   ClientVersion,
 		"Client-Session":   ClientSessionId,
@@ -733,12 +734,12 @@ func verifyEmail(XDeviceId, ClientVersion, ClientSessionId, accessToken, ClientI
 	client := &http.Client{}
 	var proxyURL *url.URL
 
-	if config.Proxy == "your_proxy" || config.Proxy == "" {
+	if shared.Config.Proxy == "your_proxy" || shared.Config.Proxy == "" {
 		// Warning, if you are not using proxy, the requests can be blocked
 		fmt.Println("!! There is no proxy configuration found. The requests are going to be handled without any proxy !!")
 	} else {
 		var err error
-		proxyURL, err = url.Parse(config.Proxy)
+		proxyURL, err = url.Parse(shared.Config.Proxy)
 		if err != nil {
 			return nil, err
 		}
@@ -763,7 +764,7 @@ func verifyEmail(XDeviceId, ClientVersion, ClientSessionId, accessToken, ClientI
 		return nil, fmt.Errorf("unexpected response status code: %d", resp.StatusCode)
 	}
 
-	verificationResponse := &VerificationCodeResponse{}
+	verificationResponse := &shared.VerificationCodeResponse{}
 	if err := json.Unmarshal(body, &verificationResponse); err != nil {
 		return nil, err
 	}
@@ -771,7 +772,7 @@ func verifyEmail(XDeviceId, ClientVersion, ClientSessionId, accessToken, ClientI
 	return verificationResponse, nil
 }
 
-func saveAccountData(r RandomRegisterData, userId string, accesToken string) error {
+func saveAccountData(r shared.RandomRegisterData, userId string, accesToken string) error {
 	// 1. Save Full data
 
 	// Check if the file exists

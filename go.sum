@@ -1,5 +1,3 @@
-github.com/capsolver/capsolver-go v0.0.0-20240131070505-d99882bd4bc2 h1:jchTPG9fQEvlX6fiVgdzjZ6BJ8hdXH1Rm4PhWQocnM8=
-github.com/capsolver/capsolver-go v0.0.0-20240131070505-d99882bd4bc2/go.mod h1:auD5FFe3cKFAtiRmeD8I8Bf1Og/NAlnmJqtbjOb6qPM=
 github.com/goombaio/namegenerator v0.0.0-20181006234301-989e774b106e h1:XmA6L9IPRdUr28a+SK/oMchGgQy159wvzXA5tJ7l+40=
 github.com/goombaio/namegenerator v0.0.0-20181006234301-989e774b106e/go.mod h1:AFIo+02s+12CEg8Gzz9kzhCbmbq6JcKNrhHffCGA9z4=
 github.com/ox-y/GoGmailnator v0.0.0-20221007105726-efc90fa60848 h1:I5CTueWHirX0aZTX3qY49U2uuwwf/OFv30/MI49rDKQ=

@@ -1,14 +1,6 @@
-package main
+package shared
 
 import "github.com/ox-y/GoGmailnator"
-
-type Config struct {
-	CapSolverKey   string
-	Proxy          string
-	UserAgent      string
-	EmailDomain    string
-	TwitchClientID string
-}
 
 type RandomRegisterData struct {
 	Username       string   `json:"username"`
