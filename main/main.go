@@ -28,13 +28,27 @@ var tokensFile string = "./results/tokens.txt"
 
 func main() {
 	fmt.Println("twitch-accounts by xBadApple -  https://github.com/xBadApple")
-	//fastEmailTest() // Uncomment this line if you want to test the trash email in a fast way, dont forget to enable breakpoints inside the function
+	//shared.FastEmailTest() // Uncomment this line if you want to test the trash email in a fast way, dont forget to enable breakpoints inside the function
 
 	if shared.Config.CapSolverKey == "your_captcha_key" {
 		log.Fatal("It looks like your captcha solver API token isn't configured yet. Change it in the shared.Config.go file and run again.")
 	}
 
-	createNewAccount()
+	fmt.Println("Starting account creation...")
+	fmt.Println("How many accounts do you want to create?")
+	var quantity int
+	_, err := fmt.Scanln(&quantity)
+	if err != nil {
+		fmt.Println("Invalid input. Please enter a number.")
+		return
+	}
+
+	for i := 0; i < quantity; i++ {
+		shared.ClearScreen()
+
+		fmt.Printf("Creating account %d of %d\n", i+1, quantity)
+		createNewAccount()
+	}
 }
 func createNewAccount() {
 	randomUsername := getRandomUsername() + "_" + generateRandomID(3)
