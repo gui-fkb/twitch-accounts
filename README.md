@@ -22,6 +22,7 @@
   ✔ Verify account email
   ✔ Captcha Validation
   ✔ Proxy Support
+  ✔ Follow bot
   ✔ Simple and easy-to-use script
 
   ---
@@ -35,9 +36,9 @@
   
   ## 🎉・Next Steps/Enhancements
   
-  - Follow bot
-  - <span style="color: gray;">~~Code cleanup~~</span>
-  - <span style="color: gray;">~~Proxy configuration~~</span>
+  - <span style="color: gray;">~~Follow bot~~</span> <i style="color:green;">Done!</i>
+  - <span style="color: gray;">~~Code cleanup~~</span>  <i style="color:green;">Done!</i>
+  - <span style="color: gray;">~~Proxy configuration~~</span>  <i style="color:green;">Done!</i>
   
   ## 📄・License
   
@@ -51,13 +52,14 @@
   ## ⭐・Contributing
   Contributions are welcome! If you have any ideas, suggestions, or improvements, feel free to open an issue or create a pull request.
   
-  
-  
   ## ❗・Notice
   Remember, automations are against Twitch rules, do not abuse this project. I've created this tool out of genuine interest and released it for wider use. Let's keep it positive and avoid any misuse to maintain a healthy environment on Twitch.
   
   ## 💭・ChangeLog
   ```diff
+      v0.0.4 ⋮ 13 may 2024
+    + Added follow-bot
+
     v0.0.3 ⋮ 11 may 2024
     + Added proxy support to all requests
     
