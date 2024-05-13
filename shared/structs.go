@@ -101,8 +101,8 @@ type VerificationCodeResponse struct {
 
 // Follow Bot
 
-type QueryUserId struct {
+type TwitchOperationQuery struct { // This is a struct for Twitch generics requests. Various requests will use this struct.
 	OperationName string                 `json:"operationName"`
-	Variables     map[string]string      `json:"variables"`
+	Variables     map[string]interface{} `json:"variables"`
 	Extensions    map[string]interface{} `json:"extensions"`
 }

@@ -20,7 +20,8 @@ func main() {
 
 	var username string
 	fmt.Println("Enter the username you want to follow: ")
-	fmt.Scanln(&username)
+	//fmt.Scanln(&username)
+	username = "guirerume_"
 
 	userId, err := getUserId(username)
 	if err != nil {
@@ -33,16 +34,72 @@ func main() {
 		fmt.Println("User found with ID: " + userId)
 	}
 
+	myTestOauth := "l3l330k8ru88koihh11gjwg42dnc7l" // Letting this oauth token here for testing purposes. Just feel free to replace it with your own oauth token if it's not working.
+
+	followTwitchUser(userId, myTestOauth)
 }
 
 func followTwitchUser(userid string, oauth string) {
 
 }
 
+func startFollowRequest(userId string, oauth string, XDeviceId string, ClientVersion string, ClientSessionId string, ClientIntegrity string, UserAgent string) {
+	query := []shared.TwitchOperationQuery{
+		{
+			OperationName: "FollowButton_FollowUser",
+			Variables: map[string]interface{}{
+				"input": map[string]interface{}{
+					"disableNotifications": false,
+					"targetID":             "${" + userId + "}",
+				},
+			},
+			Extensions: map[string]interface{}{
+				"persistedQuery": map[string]interface{}{
+					"version":    1,
+					"sha256Hash": "800e7346bdf7e5278a3c1d3f21b2b56e2639928f86815677a7126b093b2fdd08",
+				},
+			},
+		},
+	}
+
+	queryBytes, _ := json.Marshal(query)
+
+	req, _ := http.NewRequest("POST", "https://gql.twitch.tv/gql#origin=twilight", bytes.NewBuffer(queryBytes))
+	req.Header.Set("User-Agent", UserAgent)
+	req.Header.Set("Accept", "application/json")
+	req.Header.Set("Accept-Language", "en-US")
+	req.Header.Set("Accept-Encoding", "identity")
+	req.Header.Set("Referer", "https://www.twitch.tv/")
+	req.Header.Set("Client-Id", shared.Config.TwitchClientID)
+	req.Header.Set("X-Device-Id", XDeviceId)
+	req.Header.Set("Client-Version", ClientVersion)
+	req.Header.Set("Client-Session", ClientSessionId)
+	req.Header.Set("Authorization", "OAuth "+oauth)
+	req.Header.Set("Client-Integrity", ClientIntegrity)
+	req.Header.Set("Content-Type", "text/plain;charset=UTF-8")
+	req.Header.Set("Origin", "https://www.twitch.tv")
+	req.Header.Set("DNT", "1")
+	req.Header.Set("Connection", "keep-alive")
+	req.Header.Set("Sec-Fetch-Dest", "empty")
+	req.Header.Set("Sec-Fetch-Mode", "cors")
+	req.Header.Set("Sec-Fetch-Site", "same-site")
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	defer resp.Body.Close()
+
+	body, _ := ioutil.ReadAll(resp.Body)
+	fmt.Println(string(body))
+}
+
 func getUserId(username string) (string, error) {
-	query := shared.QueryUserId{
+	query := shared.TwitchOperationQuery{
 		OperationName: "ChannelShell",
-		Variables:     map[string]string{"login": username},
+		Variables:     map[string]interface{}{"login": username},
 		Extensions: map[string]interface{}{
 			"persistedQuery": map[string]interface{}{
 				"version":    1,
