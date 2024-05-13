@@ -13,6 +13,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"twitch-accounts/shared"
@@ -43,12 +44,27 @@ func main() {
 		return
 	}
 
-	for i := 0; i < quantity; i++ {
-		shared.ClearScreen()
+	var wg sync.WaitGroup
+	sem := make(chan bool, 4) // Limit to 4 concurrent goroutines
 
-		fmt.Printf("Creating account %d of %d\n", i+1, quantity)
-		createNewAccount()
+	for i := 0; i < quantity; i++ {
+		wg.Add(1)
+		go func(i int) {
+			sem <- true // Will block if there is already 5 goroutines running
+			defer func() {
+				<-sem // Release the slot
+				wg.Done()
+			}()
+
+			fmt.Printf("Creating account %d of %d\n", i+1, quantity)
+			createNewAccount()
+		}(i)
 	}
+
+	wg.Wait()
+	close(sem)
+
+	fmt.Println("Finished accounts creation.")
 }
 func createNewAccount() {
 	randomUsername := getRandomUsername() + "_" + generateRandomID(3)
@@ -217,7 +233,7 @@ func getRandomPassword() string {
 
 func generateRandomBirthday() shared.Birthday {
 	return shared.Birthday{
-		Day:   rand.Intn(30) + 1,
+		Day:   rand.Intn(25) + 1,
 		Month: rand.Intn(12) + 1,
 		Year:  rand.Intn(30) + 1970,
 	}
