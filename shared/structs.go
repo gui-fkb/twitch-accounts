@@ -98,3 +98,11 @@ type VerificationCodeResponse struct {
 	Data       Data       `json:"data"`
 	Extensions Extensions `json:"extensions"`
 }
+
+// Follow Bot
+
+type QueryUserId struct {
+	OperationName string                 `json:"operationName"`
+	Variables     map[string]string      `json:"variables"`
+	Extensions    map[string]interface{} `json:"extensions"`
+}
