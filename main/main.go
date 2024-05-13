@@ -66,8 +66,9 @@ func main() {
 
 	fmt.Println("Finished accounts creation.")
 }
+
 func createNewAccount() {
-	randomUsername := getRandomUsername() + "_" + generateRandomID(3)
+	randomUsername := getRandomUsername() + "_" + shared.GenerateRandomID(3)
 
 	trashMailSession, err := getTrashMailSession()
 	if err != nil {
@@ -139,10 +140,10 @@ func createNewAccount() {
 			continue
 		}
 
-		clientSessionId := generateRandomID(16)
+		clientSessionId := shared.GenerateRandomID(16)
 		xDeviceId := cookies["unique_id"]
 		clientVersion := "3040e141-5964-4d72-b67d-e73c1cf355b5"
-		clientRequestId := generateRandomID(32)
+		clientRequestId := shared.GenerateRandomID(32)
 
 		fmt.Println("Getting public integrity token...")
 		publicIntegrityData, err := publicIntegrityGetToken(xDeviceId, clientRequestId, clientSessionId, clientVersion, kasada2.Solution["x-kpsdk-ct"], kasada2.Solution["x-kpsdk-cd"], accessToken, kasada2.Solution["user-agent"])
@@ -194,17 +195,6 @@ func getRandomUsername() string {
 
 	name := strings.Replace(nameGenerator.Generate(), "-", "", -1)
 	return name
-}
-
-func generateRandomID(length int) string {
-	const charset = "abcdefghijklmnopqrstuvwxyz0123456789"
-
-	bytes := make([]byte, length)
-	for i := range bytes {
-		index := rand.Intn(len(charset))
-		bytes[i] = charset[index]
-	}
-	return string(bytes)
 }
 
 func getEmail(username string) string { // This function is not being used right now, but it can be useful in the future

@@ -2,6 +2,7 @@ package shared
 
 import (
 	"fmt"
+	"math/rand"
 	"os"
 	"os/exec"
 	"runtime"
@@ -64,4 +65,15 @@ func ClearScreen() {
 		// Unsupported platform
 		fmt.Println("Unsupported platform")
 	}
+}
+
+func GenerateRandomID(length int) string {
+	const charset = "abcdefghijklmnopqrstuvwxyz0123456789"
+
+	bytes := make([]byte, length)
+	for i := range bytes {
+		index := rand.Intn(len(charset))
+		bytes[i] = charset[index]
+	}
+	return string(bytes)
 }
