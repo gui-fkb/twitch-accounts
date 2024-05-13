@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"bytes"
 	"encoding/json"
 	"errors"
@@ -10,11 +11,15 @@ import (
 	"log"
 	"net/http"
 	"net/url"
-	"strconv"
+	"os"
 	"strings"
+	"sync"
 	"time"
 	"twitch-accounts/shared"
 )
+
+var friendRequestsSent = 0
+var tokensFile string = "./results/tokens.txt"
 
 func main() {
 	fmt.Println("twitch-accounts by xBadApple -  https://github.com/xBadApple")
@@ -26,8 +31,8 @@ func main() {
 
 	var username string
 	fmt.Println("Enter the username you want to follow: ")
-	//fmt.Scanln(&username)
-	username = "guirerume_"
+	//username = "guirerume_" // Take this opportunity to follow me :)
+	fmt.Scanln(&username)
 
 	userId, err := getUserId(username)
 	if err != nil {
@@ -40,9 +45,53 @@ func main() {
 		fmt.Println("User found with ID: " + userId)
 	}
 
-	myTestOauth := "l3l330k8ru88koihh11gjwg42dnc7l" // Letting this oauth token here for testing purposes. Just feel free to replace it with your own oauth token if it's not working.
+	tokens := getTokenList()
+	//myTestOauth := "l3l330k8ru88koihh11gjwg42dnc7l" // Letting this oauth token here for testing purposes. Just feel free to replace it with your own oauth token if it's not working.
 
-	followTwitchUser(userId, myTestOauth)
+	var wg sync.WaitGroup
+	sem := make(chan bool, 5) // Limit to 5 concurrent goroutines
+
+	for _, oauthToken := range tokens {
+		wg.Add(1)
+		go func(oauthToken string) {
+			oauthToken = strings.TrimSpace(oauthToken)
+			sem <- true // Will block if there is already 5 goroutines running
+			defer func() {
+				<-sem // Release the slot
+				wg.Done()
+			}()
+
+			fmt.Println("Using token: " + oauthToken)
+			followTwitchUser(userId, oauthToken)
+		}(oauthToken)
+	}
+
+	wg.Wait()
+	close(sem)
+
+	fmt.Println("All follow requests sent.")
+}
+
+func getTokenList() []string {
+	file, err := os.Open(tokensFile)
+	if err != nil {
+		fmt.Println(err)
+		return make([]string, 0)
+	}
+	defer file.Close()
+
+	var tokens []string
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		tokens = append(tokens, scanner.Text())
+	}
+
+	if err := scanner.Err(); err != nil {
+		fmt.Println(err)
+		return make([]string, 0)
+	}
+
+	return tokens
 }
 
 func followTwitchUser(userid string, oauth string) {
@@ -53,28 +102,35 @@ func followTwitchUser(userid string, oauth string) {
 		return
 	}
 
-	fmt.Println("Getting kasada code")
-	taskResponse, err := kasadaResolver()
-	if err != nil {
-		fmt.Println(err, "\n account creation exited")
-		return
+	for i := 0; i < 3; i++ {
+		fmt.Println("Following attempt", i+1, " of ", 3)
+
+		fmt.Println("Getting kasada code")
+		taskResponse, err := kasadaResolver()
+		if err != nil {
+			fmt.Println(err, "\n account creation exited")
+			return
+		}
+
+		clientSessionId := shared.GenerateRandomID(16)
+		xDeviceId := cookies["unique_id"]
+		clientVersion := "3040e141-5964-4d72-b67d-e73c1cf355b5"
+		clientRequestId := shared.GenerateRandomID(32)
+
+		fmt.Println("Getting public integrity token...")
+		publicIntegrityData, err := publicIntegrityGetToken(xDeviceId, clientRequestId, clientSessionId, clientVersion, taskResponse.Solution["x-kpsdk-ct"], taskResponse.Solution["x-kpsdk-cd"], oauth, taskResponse.Solution["user-agent"])
+		if err != nil {
+			fmt.Println(err, "\n error getting public integrity token - account creation exited")
+			continue
+		}
+
+		jsonResp := startFollowRequest(userid, oauth, xDeviceId, clientVersion, clientSessionId, publicIntegrityData.Token, taskResponse.Solution["user-agent"])
+		if strings.Contains(jsonResp, "displayName") {
+			friendRequestsSent++
+			fmt.Println("Follow request sent succesfully. ", " - friend requests sent in total:", friendRequestsSent)
+			break
+		}
 	}
-
-	clientSessionId := shared.GenerateRandomID(16)
-	xDeviceId := cookies["unique_id"]
-	clientVersion := "3040e141-5964-4d72-b67d-e73c1cf355b5"
-	clientRequestId := shared.GenerateRandomID(32)
-
-	fmt.Println("Getting public integrity token...")
-	publicIntegrityData, err := publicIntegrityGetToken(xDeviceId, clientRequestId, clientSessionId, clientVersion, taskResponse.Solution["x-kpsdk-ct"], taskResponse.Solution["x-kpsdk-cd"], oauth, taskResponse.Solution["user-agent"])
-	fmt.Printf("PublicIntegrityToken: %v", publicIntegrityData.Token[:48]+"+"+strconv.FormatInt(int64(len(publicIntegrityData.Token)-48), 10)+"... \n")
-	if err != nil {
-		fmt.Println(err, "\n error getting public integrity token - account creation exited")
-	}
-
-	jsonResp := startFollowRequest(userid, oauth, xDeviceId, clientVersion, clientSessionId, publicIntegrityData.Token, taskResponse.Solution["user-agent"])
-
-	fmt.Println("Follow request sent.", jsonResp)
 }
 
 func startFollowRequest(userId string, oauth string, XDeviceId string, ClientVersion string, ClientSessionId string, ClientIntegrity string, UserAgent string) string {

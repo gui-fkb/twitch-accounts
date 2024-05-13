@@ -50,7 +50,7 @@ func main() {
 	for i := 0; i < quantity; i++ {
 		wg.Add(1)
 		go func(i int) {
-			sem <- true // Will block if there is already 5 goroutines running
+			sem <- true // Will block if there is already 4 goroutines running
 			defer func() {
 				<-sem // Release the slot
 				wg.Done()
