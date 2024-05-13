@@ -9,6 +9,10 @@
   <p align="center">
    A Golang bot for creating Twitch accounts
   </p>
+
+  <p align="center">
+   👍 FOLLOW BOT FUNCTIONALY ADDED 👍
+  </p>
   
   Twitch Accounts provides a script for creating Twitch accounts and verify them using temporary email addresses. It can be useful for various purposes, such as testing or automation
   
@@ -57,7 +61,7 @@
   
   ## 💭・ChangeLog
   ```diff
-      v0.0.4 ⋮ 13 may 2024
+    v0.0.4 ⋮ 13 may 2024
     + Added follow-bot
 
     v0.0.3 ⋮ 11 may 2024
