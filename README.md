@@ -39,7 +39,7 @@
   ```sh-session
   > Clone this repository
   > Create an account on https://salamoonder.com/ then add some credits and set up Captcha Api Key on your config.go file
-  > If you want to use proxy, then setup it in config.go file as well, otherwise just just let the default value or "" - also, make sure that your proxy service isn't blocking access to Twitch.
+  > If you want to use proxy, then setup it in config.go file as well, otherwise just let the default value or "" - also, make sure that your proxy service isn't blocking access to Twitch.
   > Make sure you have Golang installed on your machine, then run the following command in the project root: 'go run main/main.go' (without the single quotes)
   > For run the follow-bot feature, run the following command: 'go run followbot/followbot.go' (without the single quotes)
   ```
