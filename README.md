@@ -1,5 +1,5 @@
 <h4 align="center">
-    Working as 11 may 2024 !
+    Working as 13 may 2024 !
   </h4>
   
   <h1 align="center">
@@ -9,12 +9,20 @@
   <p align="center">
    A Golang bot for creating Twitch accounts
   </p>
-  
+
   Twitch Accounts provides a script for creating Twitch accounts and verify them using temporary email addresses. It can be useful for various purposes, such as testing or automation
-  
-  **⭐ If you found this project helpful, illuminate it with your support by dropping a brilliant star! 🌟**
+        
+  <h3 align="center">
+    🚀 Recent Enhancements 🚀
+  </h3>
+
+  <p align="center">
+    🤖 Follow bot functionality has been added! 🎉
+  </p>
   
   <hr>
+  
+  **⭐ If you found this project helpful, illuminate it with your support by dropping a brilliant star! 🌟**
   
   ## :fire: Features
   
@@ -22,22 +30,28 @@
   ✔ Verify account email
   ✔ Captcha Validation
   ✔ Proxy Support
+  ✔ Follow bot
   ✔ Simple and easy-to-use script
 
   ---
   
   ## ⚙️・How to setup Twitch Accounts?
   ```sh-session
+  - Basic setup
   > Clone this repository
   > Create an account on https://salamoonder.com/ then add some credits and set up Captcha Api Key on your config.go file
-  > Make sure you have Golang installed on your machine, then run the following command in the project root: 'go run .' or 'go run main.go structs.go utils.go config.go' (without the single quotes)
+  > If you want to use proxy, then setup it in config.go file as well, otherwise just let the default value or "" - also, make sure that your proxy service isn't blocking access to Twitch.
+
+  - How to run
+  > Make sure you have Golang installed on your machine, then run the following command in the project root: 'go run main/main.go' (without the single quotes)
+  > To run the follow-bot feature, use the following command: 'go run followbot/followbot.go' (without the single quotes)
   ```
   
   ## 🎉・Next Steps/Enhancements
   
-  - Follow bot
-  - <span style="color: gray;">~~Code cleanup~~</span>
-  - <span style="color: gray;">~~Proxy configuration~~</span>
+  - <span style="color: gray;">~~Follow bot~~</span> <i style="color:green;">Done!</i>
+  - <span style="color: gray;">~~Code cleanup~~</span>  <i style="color:green;">Done!</i>
+  - <span style="color: gray;">~~Proxy configuration~~</span>  <i style="color:green;">Done!</i>
   
   ## 📄・License
   
@@ -51,13 +65,14 @@
   ## ⭐・Contributing
   Contributions are welcome! If you have any ideas, suggestions, or improvements, feel free to open an issue or create a pull request.
   
-  
-  
   ## ❗・Notice
   Remember, automations are against Twitch rules, do not abuse this project. I've created this tool out of genuine interest and released it for wider use. Let's keep it positive and avoid any misuse to maintain a healthy environment on Twitch.
   
   ## 💭・ChangeLog
   ```diff
+    v0.0.4 ⋮ 13 may 2024
+    + Added follow-bot
+
     v0.0.3 ⋮ 11 may 2024
     + Added proxy support to all requests
     

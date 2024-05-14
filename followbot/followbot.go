@@ -23,8 +23,7 @@ var tokensFile string = "./results/tokens.txt"
 
 func main() {
 	fmt.Println("twitch-accounts by xBadApple -  https://github.com/xBadApple")
-	//shared.FastEmailTest() // Uncomment this line if you want to test the trash email in a fast way, dont forget to enable breakpoints inside the function
-
+	
 	if shared.Config.CapSolverKey == "your_captcha_key" {
 		log.Fatal("It looks like your captcha solver API token isn't configured yet. Change it in the shared.Config.go file and run again.")
 	}
