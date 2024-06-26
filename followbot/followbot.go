@@ -45,7 +45,6 @@ func main() {
 	}
 
 	tokens := getTokenList()
-	//myTestOauth := "l3l330k8ru88koihh11gjwg42dnc7l" // Letting this oauth token here for testing purposes. Just feel free to replace it with your own oauth token if it's not working.
 
 	var wg sync.WaitGroup
 	sem := make(chan bool, 5) // Limit to 5 concurrent goroutines
