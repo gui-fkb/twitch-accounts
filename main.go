@@ -303,9 +303,9 @@ func kasadaResolver() (*shared.ResultTaskResponse, error) {
 		return nil, errors.New(taskResponse.ErrorDescription)
 	}
 
-	maxAttemps := 50
+	maxAttemps := 100
 	for i := 0; i < maxAttemps; i++ {
-		time.Sleep(time.Millisecond * 100)
+		time.Sleep(time.Millisecond * 50) // Pooling every 50ms
 
 		taskResult, err := getTaskResult(taskResponse.TaskId)
 		if err != nil {
