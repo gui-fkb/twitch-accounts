@@ -7,7 +7,17 @@
             "request": "launch",
             "mode": "auto",
             "program": "${workspaceFolder}/main.go",
-            "console": "externalTerminal"
+            "console": "externalTerminal",
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "name": "Launch FollowBot",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "program": "${workspaceFolder}/followbot/followbot.go",
+            "console": "externalTerminal",
+            "cwd": "${workspaceFolder}"
         }
     ]
 }
