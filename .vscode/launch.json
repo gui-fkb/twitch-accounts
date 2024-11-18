@@ -6,7 +6,7 @@
             "type": "go",
             "request": "launch",
             "mode": "auto",
-            "program": "${workspaceFolder}/main/main.go",
+            "program": "${workspaceFolder}/main.go",
             "console": "externalTerminal"
         }
     ]
