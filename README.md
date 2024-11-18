@@ -6,15 +6,17 @@
     🟣 Twitch Accounts 🟣
   </h1>
 
-<h4 align="center" style="color:red;">
-    ⚠️ The follow-bot feature is currently not working! ⚠️
-</h4>
-  
+
   <p align="center">
    A Golang bot for creating Twitch accounts
   </p>
 
   Twitch Accounts provides a script for creating Twitch accounts and verify them using temporary email addresses. It can be useful for various purposes, such as testing or automation
+
+<h4 align="center" style="color:red;">
+    ⚠️ The follow-bot feature is currently not working! ⚠️
+</h4>
+  
         
   <h3 align="center">
     🚀 Recent Enhancements 🚀
