@@ -16,7 +16,8 @@
 <h4 align="center" style="color:red;">
     ⚠️ The follow-bot feature is currently not working! ⚠️
 </h4>
-  
+
+  <hr>
         
   <h3 align="center">
     🚀 Recent Enhancements 🚀
