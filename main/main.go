@@ -343,7 +343,10 @@ func createKasadaTask() (*shared.CreateTaskResponse, error) {
 
 func getTaskResult(taskId string) (*shared.ResultTaskResponse, error) {
 	// There is not the need to use proxy here, because the kasada task is not being blocked by the server
-	task := shared.GetTaskResult{TaskId: taskId}
+	task := shared.GetTaskResult{
+		ApiKey: shared.Config.CapSolverKey,
+		TaskId: taskId,
+	}
 
 	jsonBody, err := json.Marshal(task)
 	if err != nil {

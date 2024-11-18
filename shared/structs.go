@@ -22,6 +22,7 @@ type CreateKasadaTask struct {
 	Task   Task   `json:"task"`
 }
 type GetTaskResult struct {
+	ApiKey string `json:"api_key"`
 	TaskId string `json:"taskId"`
 }
 
