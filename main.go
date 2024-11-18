@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"sync"
@@ -110,83 +111,94 @@ func createNewAccount() {
 
 	fmt.Println("Creating account...")
 	registerPostData.IntegrityToken = integrityData.Token
-	registerData, err := registerFinal(cookies, registerPostData, taskResponse.Solution["user-agent"])
+	registerPostData.IsPasswordGuide = "nist"
+
+	_, err = registerFinal(cookies, registerPostData, taskResponse.Solution["user-agent"])
 	if err != nil {
-		fmt.Println(err, "\n error creating account - account creation exited")
-		return
+		var errorResponse shared.ErrorResponse
+		err := json.Unmarshal([]byte(err.Error()), &errorResponse)
+		if err != nil {
+			fmt.Println("error parsing error response", err)
+			return
+		}
+
+		if errorResponse.ErrorCode != 2026 { // If error = 2026 then it's all right to proceed
+			fmt.Printf("Parsed error response: %+v\n", errorResponse)
+			return
+		}
 	}
 
-	userId := registerData.UserId
-	accessToken := registerData.AccessToken
-
-	fmt.Println("Account created!")
-	fmt.Println("UserID:", userId, "AccessToken:", accessToken)
-
 	fmt.Println("Waiting email verification ...")
-	time.Sleep(time.Second * 8) // Sleep for 8 seconds because twitch verification email can have some delay
+	time.Sleep(time.Second * 15) // Sleep for 8 seconds because twitch verification email can have some delay
 	verifyCode, err := getVerificationCode(trashMailSession)
 	if err != nil {
 		fmt.Println(err, "\n error getting verification code - account creation exited")
 		return
 	}
 
-	verifyEmailResponse := &shared.VerificationCodeResponse{}
+	maxRetries := 4
+	var registerData *shared.AccountRegisterResponse
 
-	for i := 0; i < 4; i++ {
-		fmt.Println("Getting Kasada Code attempt", i+1, " of ", 4)
-		kasada2, err := kasadaResolver()
+	for i := 0; i < maxRetries; i++ {
+		fmt.Println("Registering account attempt ", i+1, " of ", maxRetries)
+
+		fmt.Println("Getting kasada code")
+		taskResponse, err = kasadaResolver()
 		if err != nil {
-			fmt.Println(err, "\n error getting kasada code - account creation exited")
+			fmt.Println(err, "\n account creation exited")
 			continue
 		}
 
-		clientSessionId := shared.GenerateRandomID(16)
-		xDeviceId := cookies["unique_id"]
-		clientVersion := "3040e141-5964-4d72-b67d-e73c1cf355b5"
-		clientRequestId := shared.GenerateRandomID(32)
-
-		fmt.Println("Getting public integrity token...")
-		publicIntegrityData, err := publicIntegrityGetToken(xDeviceId, clientRequestId, clientSessionId, clientVersion, kasada2.Solution["x-kpsdk-ct"], kasada2.Solution["x-kpsdk-cd"], accessToken, kasada2.Solution["user-agent"])
-		fmt.Printf("PublicIntegrityToken: %v", publicIntegrityData.Token[:48]+"+"+strconv.FormatInt(int64(len(publicIntegrityData.Token)-48), 10)+"... \n")
+		fmt.Println("Getting local integrity token")
+		err = getIntegrityOption(taskResponse)
 		if err != nil {
-			fmt.Println(err, "\n error getting public integrity token - account creation exited")
+			fmt.Println(err, "\n account creation exited")
 			continue
 		}
 
-		fmt.Println("Verifying account email...")
-		verifyEmailResponse, err = verifyEmail(xDeviceId, clientVersion, clientSessionId, accessToken, publicIntegrityData.Token, verifyCode, userId, trashMailSession.Email, kasada2.Solution["user-agent"])
+		integrityData, err = integrityGetToken(taskResponse, cookies)
 		if err != nil {
-			fmt.Println(err, "\n error verifying account email - account creation exited")
+			fmt.Println(err, "\n unable to register token - account creation exited")
 			continue
 		}
+		fmt.Printf("IntegrityToken: %v", integrityData.Token[:48]+"+"+strconv.FormatInt(int64(len(integrityData.Token)-48), 10)+"... \n")
 
-		if verifyEmailResponse == nil {
-			fmt.Println(err, "\n email verification failed - account creation exited")
-			continue
-		}
+		registerPostData.IntegrityToken = integrityData.Token
+		registerPostData.EmailVerificationCode = &verifyCode
 
-		if verifyEmailResponse.Data.ValidateVerificationCode.Request.Status == "VERIFIED" {
-			break
+		registerData, err = registerFinal(cookies, registerPostData, taskResponse.Solution["user-agent"])
+		if err != nil {
+			var errorResponse shared.ErrorResponse
+			err := json.Unmarshal([]byte(err.Error()), &errorResponse)
+			if err != nil {
+				fmt.Println("error parsing error response", err)
+				return
+			}
+
+			if errorResponse.ErrorCode != 2013 { // ErrorCode 2013 means the email is already registered for too many accounts, so it need to give it up
+				fmt.Println("Error response:", errorResponse.Error)
+				break
+			}
 		}
+		// If we reach here, it means the operation was successful
+		break
 	}
 
-	if verifyEmailResponse.Data.ValidateVerificationCode.Request.Status == "VERIFIED" {
-		err := saveAccountData(registerPostData, userId, accessToken)
-		if err != nil {
-			fmt.Println(err, "\n error saving account data - account creation exited")
-			return
-		}
-
-		fmt.Println("Account verified and saved!")
-	} else {
-		fmt.Println("Account WAS NOT NOT VERIFIED")
-		jsonBytes, _ := json.Marshal(verifyEmailResponse)
-
-		fmt.Println("Verify email response: " + string(jsonBytes))
-
+	if err != nil {
+		fmt.Println("Failed to create account after", maxRetries, "attempts")
 		return
 	}
 
+	fmt.Println("Account created!")
+	fmt.Println("UserID:", registerData.UserId, "AccessToken:", registerData.AccessToken)
+
+	err = saveAccountData(registerPostData, registerData.UserId, registerData.AccessToken)
+	if err != nil {
+		fmt.Println(err, "\n error saving account data - account creation exited")
+		return
+	}
+
+	fmt.Println("Account verified and saved!")
 	fmt.Println("Account is ready!")
 }
 
@@ -223,9 +235,10 @@ func getRandomPassword() string {
 
 func generateRandomBirthday() shared.Birthday {
 	return shared.Birthday{
-		Day:   rand.Intn(25) + 1,
-		Month: rand.Intn(12) + 1,
-		Year:  rand.Intn(30) + 1970,
+		Day:      rand.Intn(25) + 1,
+		Month:    rand.Intn(12) + 1,
+		Year:     rand.Intn(30) + 1970,
+		IsOver18: true,
 	}
 }
 
@@ -286,9 +299,13 @@ func kasadaResolver() (*shared.ResultTaskResponse, error) {
 		return nil, err
 	}
 
-	maxAttemps := 12
+	if taskResponse.ErrorCode > 0 {
+		return nil, errors.New(taskResponse.ErrorDescription)
+	}
+
+	maxAttemps := 50
 	for i := 0; i < maxAttemps; i++ {
-		time.Sleep(time.Millisecond * 400)
+		time.Sleep(time.Millisecond * 100)
 
 		taskResult, err := getTaskResult(taskResponse.TaskId)
 		if err != nil {
@@ -796,7 +813,12 @@ func verifyEmail(XDeviceId, ClientVersion, ClientSessionId, accessToken, ClientI
 }
 
 func saveAccountData(r shared.RandomRegisterData, userId string, accesToken string) error {
-	// 1. Save Full data
+	dir := filepath.Dir(outputFile)
+	if _, err := os.Stat(dir); os.IsNotExist(err) {
+		if err := os.MkdirAll(dir, 0755); err != nil {
+			return err
+		}
+	}
 
 	// Check if the file exists
 	if _, err := os.Stat(outputFile); os.IsNotExist(err) {
@@ -817,6 +839,13 @@ func saveAccountData(r shared.RandomRegisterData, userId string, accesToken stri
 	}
 
 	// 2. Save only the username and password
+	dir = filepath.Dir(userPassFile)
+	if _, err := os.Stat(dir); os.IsNotExist(err) {
+		if err := os.MkdirAll(dir, 0755); err != nil {
+			return err
+		}
+	}
+
 	if _, err := os.Stat(userPassFile); os.IsNotExist(err) {
 		if err := os.WriteFile(userPassFile, []byte(""), 0644); err != nil {
 			return err
@@ -833,6 +862,13 @@ func saveAccountData(r shared.RandomRegisterData, userId string, accesToken stri
 	}
 
 	// 3. Save only the tokens (oauth acces token)
+	dir = filepath.Dir(tokensFile)
+	if _, err := os.Stat(dir); os.IsNotExist(err) {
+		if err := os.MkdirAll(dir, 0755); err != nil {
+			return err
+		}
+	}
+
 	if _, err := os.Stat(tokensFile); os.IsNotExist(err) {
 		if err := os.WriteFile(tokensFile, []byte(""), 0644); err != nil {
 			return err
