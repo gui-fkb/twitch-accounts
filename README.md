@@ -1,5 +1,5 @@
 <h4 align="center">
-    Working as 13 may 2024 !
+    Working as 02 Aug 2024 !
   </h4>
   
   <h1 align="center">
@@ -92,7 +92,7 @@
   
   
   ## Author
-  Authored by: xBadApple [Github](https://github.com/xBadApple)
+  Authored by: gui-fkb [Github](https://github.com/gui-fkb)
   
   ## Credits
   This project design was based on 'twitch-account-creator' NodeJS repo by masterking32 [Github](https://github.com/masterking32). Since the project wasn't being maintained and the email verification feature proposed in the original repository had stopped working, I decided to add some of my own twist to it.
