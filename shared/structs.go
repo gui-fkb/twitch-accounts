@@ -3,18 +3,21 @@ package shared
 import "github.com/ox-y/GoGmailnator"
 
 type RandomRegisterData struct {
-	Username       string   `json:"username"`
-	Password       string   `json:"password"`
-	Birthday       Birthday `json:"birthday"`
-	Email          string   `json:"email"`
-	ClientID       string   `json:"client_id"`
-	IntegrityToken string   `json:"integrity_token"`
+	Username              string   `json:"username"`
+	Password              string   `json:"password"`
+	Birthday              Birthday `json:"birthday"`
+	Email                 string   `json:"email"`
+	EmailVerificationCode *string  `json:"email_verification_code"`
+	ClientID              string   `json:"client_id"`
+	IntegrityToken        string   `json:"integrity_token"`
+	IsPasswordGuide       string   `json:"is_password_guide"`
 }
 
 type Birthday struct {
-	Day   int `json:"day"`
-	Month int `json:"month"`
-	Year  int `json:"year"`
+	Day      int  `json:"day"`
+	Month    int  `json:"month"`
+	Year     int  `json:"year"`
+	IsOver18 bool `json:"is_over_18"`
 }
 
 type CreateKasadaTask struct {
@@ -106,4 +109,11 @@ type TwitchOperationQuery struct { // This is a struct for Twitch generics reque
 	OperationName string                 `json:"operationName"`
 	Variables     map[string]interface{} `json:"variables"`
 	Extensions    map[string]interface{} `json:"extensions"`
+}
+
+type ErrorResponse struct {
+	Breached  bool     `json:"breached"`
+	Error     string   `json:"error"`
+	Errors    []string `json:"errors"`
+	ErrorCode int      `json:"error_code"`
 }
