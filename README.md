@@ -1,10 +1,14 @@
 <h4 align="center">
-    Working as 02 Aug 2024 !
+    Working as 18 Nov 2024 !
   </h4>
   
   <h1 align="center">
     🟣 Twitch Accounts 🟣
   </h1>
+
+<h4 align="center" style="color:red;">
+    ⚠️ The follow-bot feature is currently not working! ⚠️
+</h4>
   
   <p align="center">
    A Golang bot for creating Twitch accounts
@@ -70,6 +74,11 @@
   
   ## 💭・ChangeLog
   ```diff
+    v0.0.5 ⋮ 18 nov 2024
+    + Fixed 'kasada taking too long' error
+    + Updated bot account creation flow to accommodate Twitch adjustments
+    - Follow-bot not working
+
     v0.0.4 ⋮ 13 may 2024
     + Added follow-bot
 
