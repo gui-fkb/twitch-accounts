@@ -1,5 +1,5 @@
 <h4 align="center">
-    Working as 18 Nov 2024 !
+    Working as 19 Nov 2024 !
   </h4>
   
   <h1 align="center">
@@ -11,7 +11,8 @@
    A Golang bot for creating Twitch accounts
   </p>
 
-  Twitch Accounts provides a script for creating Twitch accounts and verify them using temporary email addresses. It can be useful for various purposes, such as testing or automation
+  Twitch Accounts provides a script for creating Twitch accounts and verify them using temporary Gmail addresses. Using the Gmail approach ensures enhanced security and reliability, making the accounts more resilient against bans and blocks. This 
+  project can be useful for various purposes, such as testing or automation
   
   <h3 align="center">
     🚀 Recent Enhancements 🚀
@@ -28,7 +29,7 @@
   ## :fire: Features
   
   ✔ Create accounts on TwitchTV
-  ✔ Verify account email
+  ✔ Verify account email (Using Gmail Accounts)
   ✔ Captcha Validation
   ✔ Proxy Support
   ✔ Follow bot
