@@ -37,7 +37,7 @@
 
   ## ⚠️ Warning
 
-  ❌ The follow-bot feature is currently **not working**. (18 Nov 2024)
+  ❌ The follow-bot feature is currently **not working**. (since 18 Nov 2024)
 
   ---
   
