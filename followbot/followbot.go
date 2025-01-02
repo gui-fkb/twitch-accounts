@@ -22,8 +22,8 @@ var friendRequestsSent = 0
 var tokensFile string = "./results/tokens.txt"
 
 func main() {
-	fmt.Println("twitch-accounts by xBadApple -  https://github.com/xBadApple")
-	
+	fmt.Println("twitch-accounts by gui-fkb -  https://github.com/gui-fkb")
+
 	if shared.Config.CapSolverKey == "your_captcha_key" {
 		log.Fatal("It looks like your captcha solver API token isn't configured yet. Change it in the shared.Config.go file and run again.")
 	}
