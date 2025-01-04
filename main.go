@@ -71,13 +71,7 @@ func main() {
 func createNewAccount() {
 	randomUsername := getRandomUsername() + "_" + shared.GenerateRandomID(3)
 
-	trashMailSession, err := getTrashMailSession()
-	if err != nil {
-		fmt.Println(err, "\n account creation exited")
-		return
-	}
-
-	randomEmail := trashMailSession.Email
+	randomEmail := getEmail(randomUsername)
 
 	registerPostData := generateRandomRegisterData(randomUsername, randomEmail)
 
@@ -129,8 +123,7 @@ func createNewAccount() {
 	}
 
 	fmt.Println("Waiting email verification ...")
-	time.Sleep(time.Second * 15) // Sleep for 8 seconds because twitch verification email can have some delay
-	verifyCode, err := getVerificationCode(trashMailSession)
+	verifyCode, err := getVerificationCode(randomUsername)
 	if err != nil {
 		fmt.Println(err, "\n error getting verification code - account creation exited")
 		return
@@ -623,28 +616,43 @@ func getTrashMailSession() (*shared.MailnatorData, error) {
 	return mailData, nil
 }
 
-func getVerificationCode(mailData *shared.MailnatorData) (string, error) {
-	emails, err := mailData.Session.RetrieveMail(mailData.Email)
+func getAllMails(username string) ([]map[string]interface{}, error) {
+	resp, err := http.Get(fmt.Sprintf("https://www.1secmail.com/api/v1/?action=getMessages&login=%s&domain=%s", username, shared.Config.EmailDomain))
 	if err != nil {
-		return "", err
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
 	}
 
-	var verificationCode string
-	for _, email := range emails {
-		if strings.Contains(email.Subject, "Twitch") {
-			split := strings.Split(email.Subject, "–")[0]
-			verificationCode = strings.TrimSpace(split)
-			break
+	var outputArray []map[string]interface{}
+	err = json.Unmarshal(body, &outputArray)
+	if err != nil {
+		return nil, err
+	}
+
+	return outputArray, nil
+}
+
+func getVerificationCode(username string) (string, error) {
+	for {
+		lastMail, err := getAllMails(username)
+		if err != nil {
+			return "", err
 		}
+
+		if len(lastMail) > 0 {
+			subject := lastMail[0]["subject"].(string)
+			verifyCode := strings.Split(subject, "–")[0]
+			verifyCode = strings.ReplaceAll(verifyCode, " ", "")
+			return verifyCode, nil
+		}
+
+		time.Sleep(1 * time.Second)
 	}
-
-	if verificationCode == "" {
-		return "", errors.New("there is no twitch email")
-	}
-
-	fmt.Println("Verification code:", verificationCode)
-
-	return verificationCode, nil
 }
 
 func publicIntegrityGetToken(XDeviceId, ClientRequestId, ClientSessionId, ClientVersion, kpsdkct, kpsdkcd, accesstoken, current_useragent string) (publicIntegrity *shared.PublicIntegrityData, err error) {
