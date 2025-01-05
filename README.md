@@ -1,5 +1,5 @@
 <h4 align="center">
-    Working as 01 Jan 2025 ! 🎉
+    Working as 04 Jan 2025 ! 🎉
   </h4>
   
   <h1 align="center">
@@ -11,7 +11,7 @@
    A Golang bot for creating Twitch accounts
   </p>
 
-  Twitch Accounts provides a script for creating Twitch accounts and verify them using temporary Gmail addresses. Using the Gmail approach ensures enhanced security and reliability, making the accounts more resilient against bans and blocks. This 
+  Twitch Accounts provides a script for creating Twitch accounts and verify them using temporary email addresses. This 
   project can be useful for various purposes, such as testing or automation
   
   <h3 align="center">
@@ -29,7 +29,7 @@
   ## :fire: Features
   
   ✔ Create accounts on TwitchTV
-  ✔ Verify account email (Using Gmail Accounts)
+  ✔ Verify account email
   ✔ Captcha Validation
   ✔ Proxy Support
   ✔ Follow bot
@@ -76,6 +76,12 @@
   
   ## 💭・ChangeLog
   ```diff
+    v0.0.6 ⋮ 04 jan 2024
+    + Fixed email verification
+    + Change email verification provider from mailnator to 1secMail
+    - Removed support for gmail domains
+
+
     v0.0.5 ⋮ 18 nov 2024
     + Fixed 'kasada taking too long' error
     + Updated bot account creation flow to accommodate Twitch adjustments
@@ -93,7 +99,7 @@
     + Improved status logging
 
     v0.0.1 ⋮ 07 may 2024
-    + Added main script (creating accounts + email verification)
+    + Added main script (creating accounts + email verification (gmail))
    ```
   ---
   
