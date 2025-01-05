@@ -29,7 +29,7 @@ var userPassFile string = "./results/userpass.txt"
 var tokensFile string = "./results/tokens.txt"
 
 func main() {
-	fmt.Println("twitch-accounts by xBadApple -  https://github.com/xBadApple")
+	fmt.Println("twitch-accounts by gui-fkb -  https://github.com/gui-fkb")
 	//shared.FastEmailTest() // Uncomment this line if you want to test the trash email in a fast way, dont forget to enable breakpoints inside the function
 
 	if shared.Config.CapSolverKey == "your_captcha_key" {
