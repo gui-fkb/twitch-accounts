@@ -76,8 +76,8 @@
   
   ## 💭・ChangeLog
   ```diff
-    v0.0.6 ⋮ 04 jan 2024
-    + Fixed email verification
+    v0.0.6 ⋮ 04 jan 2025
+    + Fixed email verification problem
     + Change email verification provider from mailnator to 1secMail
     - Removed support for gmail domains
 
