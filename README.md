@@ -1,6 +1,11 @@
-<h4 align="center">
-    Working as 22 Jan 2025 ! 🎉
+ <h4 align="center">
+    Not working since 20 Jan 2025 ❌
   </h4>
+
+ <h4 align="center">
+    1secMail service stopped working this month. Currently searching for a reliable alternative temporary email provider.
+  </h4>
+
   
   <h1 align="center">
     🟣 Twitch Accounts 🟣
